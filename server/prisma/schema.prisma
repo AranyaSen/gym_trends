@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TRAINER
+  MEMBER
+}
+
+enum AttendanceSource {
+  QR
+  MANUAL_ADMIN
+}
+
+enum PaymentMethod {
+  OFFLINE
+  RAZORPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum QrType {
+  ENTRY
+  EXIT
+}
+
+enum MembershipStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model Gym {
+  id                      String   @id @default(uuid())
+  name                    String
+  joinCode                String   @unique
+  latitude                Float
+  longitude               Float
+  gracePeriodDays         Int      @default(0)
+  onlinePaymentsEnabled   Boolean  @default(false)
+  setupCompleted          Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  users       User[]
+  plans       Plan[]
+  memberships Membership[]
+  attendance  Attendance[]
+  payments    Payment[]
+  qrTokens    QrToken[]
+  trainerLinks TrainerMember[]
+  auditLogs   AuditLog[]
+  membershipHistory MembershipHistory[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role
+  gymId        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  gym          Gym?     @relation(fields: [gymId], references: [id])
+  memberships  Membership[]
+  attendance   Attendance[] @relation("UserAttendance")
+  manualAttendance Attendance[] @relation("ManualBy")
+  payments     Payment[]
+  trainerAs    TrainerMember[] @relation("TrainerSide")
+  memberAs     TrainerMember[] @relation("MemberSide")
+  auditLogs    AuditLog[]
+  membershipHistory MembershipHistory[]
+}
+
+model Plan {
+  id           String   @id @default(uuid())
+  gymId        String
+  name         String
+  priceCents   Int
+  durationDays Int
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  gym          Gym @relation(fields: [gymId], references: [id])
+  memberships  Membership[]
+  payments     Payment[]
+  historyFrom  MembershipHistory[] @relation("FromPlan")
+  historyTo    MembershipHistory[] @relation("ToPlan")
+}
+
+model Membership {
+  id        String            @id @default(uuid())
+  gymId     String
+  userId    String
+  planId    String
+  startDate DateTime
+  endDate   DateTime
+  status    MembershipStatus  @default(ACTIVE)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  gym  Gym  @relation(fields: [gymId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  plan Plan @relation(fields: [planId], references: [id])
+  payments Payment[]
+
+  @@index([gymId, userId])
+  @@index([gymId, endDate])
+}
+
+model MembershipHistory {
+  id         String   @id @default(uuid())
+  gymId      String
+  userId     String
+  fromPlanId String?
+  toPlanId   String?
+  changeType String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  gym      Gym  @relation(fields: [gymId], references: [id])
+  user     User @relation(fields: [userId], references: [id])
+  fromPlan Plan? @relation("FromPlan", fields: [fromPlanId], references: [id])
+  toPlan   Plan? @relation("ToPlan", fields: [toPlanId], references: [id])
+
+  @@index([gymId, userId])
+}
+
+model Attendance {
+  id             String            @id @default(uuid())
+  gymId          String
+  userId         String
+  checkInAt      DateTime
+  checkOutAt     DateTime?
+  source         AttendanceSource
+  manualByUserId String?
+  createdAt      DateTime          @default(now())
+
+  gym       Gym  @relation(fields: [gymId], references: [id])
+  user      User @relation("UserAttendance", fields: [userId], references: [id])
+  manualBy  User? @relation("ManualBy", fields: [manualByUserId], references: [id])
+
+  @@index([gymId, userId])
+  @@index([gymId, checkInAt])
+}
+
+model QrToken {
+  id        String   @id @default(uuid())
+  gymId     String
+  type      QrType
+  expiresAt DateTime
+  usedAt    DateTime?
+  usedByUserId String?
+  createdAt DateTime @default(now())
+
+  gym Gym @relation(fields: [gymId], references: [id])
+
+  @@index([gymId, expiresAt])
+}
+
+model Payment {
+  id                String         @id @default(uuid())
+  gymId             String
+  userId            String
+  planId            String?
+  membershipId      String?
+  amountCents       Int
+  method            PaymentMethod
+  status            PaymentStatus  @default(PENDING)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  note              String?
+  createdAt         DateTime       @default(now())
+
+  gym        Gym @relation(fields: [gymId], references: [id])
+  user       User @relation(fields: [userId], references: [id])
+  plan       Plan? @relation(fields: [planId], references: [id])
+  membership Membership? @relation(fields: [membershipId], references: [id])
+
+  @@index([gymId, createdAt])
+}
+
+model TrainerMember {
+  gymId     String
+  trainerId String
+  memberId  String
+
+  gym     Gym  @relation(fields: [gymId], references: [id])
+  trainer User @relation("TrainerSide", fields: [trainerId], references: [id])
+  member  User @relation("MemberSide", fields: [memberId], references: [id])
+
+  @@id([trainerId, memberId])
+  @@index([gymId, trainerId])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  gymId       String
+  adminUserId String
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  gym   Gym  @relation(fields: [gymId], references: [id])
+  admin User @relation(fields: [adminUserId], references: [id])
+
+  @@index([gymId, createdAt])
+}
