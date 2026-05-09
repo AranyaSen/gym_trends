@@ -1,30 +1,64 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ROUTES } from "../constants/routes";
-import { completeGymSetup, fetchMyGym } from "../services/authApi";
-import { Button } from "../components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
-import { Input } from "../components/ui/Input";
+import { ROUTES } from "../../constants/routes";
+import { completeGymSetup, fetchMyGym } from "../../services/authApi";
+import { Button } from "../../components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/Card";
+import { Input } from "../../components/ui/Input";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { gymSetupSchema, type GymSetupFormValues } from "../../schemas/gym";
+import { useTrackLocation } from "../../hooks/useTrackLocation";
+import { Loader } from "../../components/ui/Loader";
 
 export function AdminSetupPage() {
   const nav = useNavigate();
   const q = useQuery({ queryKey: ["gym"], queryFn: fetchMyGym });
-  const [name, setName] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [grace, setGrace] = useState("0");
-  const [online, setOnline] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const { location, loading } = useTrackLocation();
+
+  useEffect(() => {
+    if (location) {
+      setValue("latitude", location.latitude.toString());
+      setValue("longitude", location.longitude.toString());
+    }
+  }, [location]);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<GymSetupFormValues>({
+    resolver: zodResolver(gymSetupSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      latitude: "",
+      longitude: "",
+      gracePeriodDays: "0",
+      onlinePaymentsEnabled: false,
+    },
+  });
+
+  const online = watch("onlinePaymentsEnabled");
 
   const m = useMutation({
-    mutationFn: () =>
+    mutationFn: (values: GymSetupFormValues) =>
       completeGymSetup({
-        name,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        gracePeriodDays: Number(grace),
-        onlinePaymentsEnabled: online,
+        name: values.name,
+        latitude: Number(values.latitude),
+        longitude: Number(values.longitude),
+        gracePeriodDays: Number(values.gracePeriodDays),
+        onlinePaymentsEnabled: values.onlinePaymentsEnabled || false,
       }),
     onSuccess: () => nav(ROUTES.admin, { replace: true }),
     onError: (e: unknown) => {
@@ -32,7 +66,7 @@ export function AdminSetupPage() {
         e && typeof e === "object" && "response" in e
           ? String(
               (e as { response?: { data?: { error?: { message?: string } } } })
-                .response?.data?.error?.message
+                .response?.data?.error?.message,
             )
           : "Could not save";
       setErr(msg || "Could not save");
@@ -47,10 +81,17 @@ export function AdminSetupPage() {
     }
   }, [gym?.setupCompleted, nav]);
 
+  const onSubmit = (values: GymSetupFormValues) => {
+    setErr(null);
+    m.mutate(values);
+  };
+
   if (q.isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-bg">
-        <p className="text-brand-accent animate-pulse font-bold tracking-widest uppercase text-xs">Loading gym profile…</p>
+        <p className="text-brand-accent animate-pulse font-bold tracking-widest uppercase text-xs">
+          Loading gym profile…
+        </p>
       </div>
     );
   }
@@ -59,14 +100,21 @@ export function AdminSetupPage() {
     return null;
   }
 
+  if (loading) {
+    return <Loader message="Fetching location..." />;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-brand-bg relative overflow-hidden">
+    <div className="min-h-fit flex items-center justify-center p-6 bg-brand-bg relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-brand-accent/5 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="w-full max-w-md space-y-8 relative z-10">
         <header className="text-center space-y-2">
-          <Link to={ROUTES.home} className="inline-block transition-transform hover:scale-105">
+          <Link
+            to={ROUTES.home}
+            className="inline-block transition-transform hover:scale-105"
+          >
             <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
               GYM-TRAC
             </h1>
@@ -84,36 +132,26 @@ export function AdminSetupPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setErr(null);
-                m.mutate();
-              }}
-            >
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <Input
                 label="Gym Display Name"
                 placeholder={gym?.name || "Elite Fitness"}
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                {...register("name")}
+                error={errors.name?.message}
               />
 
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Latitude"
                   placeholder="0.0000"
-                  required
-                  value={latitude}
-                  onChange={(e) => setLatitude(e.target.value)}
+                  {...register("latitude")}
+                  error={errors.latitude?.message}
                 />
                 <Input
                   label="Longitude"
                   placeholder="0.0000"
-                  required
-                  value={longitude}
-                  onChange={(e) => setLongitude(e.target.value)}
+                  {...register("longitude")}
+                  error={errors.longitude?.message}
                 />
               </div>
 
@@ -121,9 +159,8 @@ export function AdminSetupPage() {
                 label="Grace Period (Days)"
                 type="number"
                 min={0}
-                required
-                value={grace}
-                onChange={(e) => setGrace(e.target.value)}
+                {...register("gracePeriodDays")}
+                error={errors.gracePeriodDays?.message}
               />
 
               <label className="flex items-center gap-3 p-3 rounded-lg border border-brand-border/30 bg-brand-surface/30 cursor-pointer hover:border-brand-accent/30 transition-colors group">
@@ -132,7 +169,9 @@ export function AdminSetupPage() {
                     type="checkbox"
                     className="peer sr-only"
                     checked={online}
-                    onChange={(e) => setOnline(e.target.checked)}
+                    onChange={(e) =>
+                      setValue("onlinePaymentsEnabled", e.target.checked)
+                    }
                   />
                   <div className="w-5 h-5 border-2 border-brand-border rounded peer-checked:border-brand-accent peer-checked:bg-brand-accent transition-all" />
                   <svg
@@ -170,15 +209,6 @@ export function AdminSetupPage() {
             </form>
           </CardContent>
         </Card>
-
-        <footer className="text-center">
-          <Link 
-            className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors" 
-            to={ROUTES.admin}
-          >
-            ← Cancel and Back
-          </Link>
-        </footer>
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   assignMembership,
   fetchMembers,
@@ -14,6 +16,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { membershipAssignSchema, type MembershipAssignFormValues } from "../../schemas/gym";
 
 const colHelper = createColumnHelper<MemberRow>();
 
@@ -21,22 +24,35 @@ export function AdminMembersPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["members"], queryFn: () => fetchMembers() });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
-  const [email, setEmail] = useState("");
-  const [planId, setPlanId] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
 
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { isValid },
+  } = useForm<MembershipAssignFormValues>({
+    resolver: zodResolver(membershipAssignSchema),
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      planId: "",
+    },
+  });
+
   const assignM = useMutation({
-    mutationFn: () => assignMembership({ memberEmail: email, planId }),
+    mutationFn: (values: MembershipAssignFormValues) => 
+      assignMembership({ memberEmail: values.email, planId: values.planId }),
     onSuccess: () => {
       setMsg("Membership assigned");
       void qc.invalidateQueries({ queryKey: ["members"] });
-      setEmail("");
     },
     onError: () => setMsg("Assign failed"),
   });
 
   const renewM = useMutation({
-    mutationFn: () => renewMembership({ memberEmail: email, planId }),
+    mutationFn: (values: MembershipAssignFormValues) => 
+      renewMembership({ memberEmail: values.email, planId: values.planId }),
     onSuccess: () => {
       setMsg("Renewed");
       void qc.invalidateQueries({ queryKey: ["members"] });
@@ -45,14 +61,30 @@ export function AdminMembersPage() {
   });
 
   const switchM = useMutation({
-    mutationFn: (changeType: "UPGRADE" | "DOWNGRADE") =>
-      switchMembership({ memberEmail: email, planId, changeType }),
+    mutationFn: ({ values, changeType }: { values: MembershipAssignFormValues; changeType: "UPGRADE" | "DOWNGRADE" }) =>
+      switchMembership({ memberEmail: values.email, planId: values.planId, changeType }),
     onSuccess: () => {
       setMsg("Plan changed");
       void qc.invalidateQueries({ queryKey: ["members"] });
     },
     onError: () => setMsg("Switch failed"),
   });
+
+  const onAssign = (values: MembershipAssignFormValues) => {
+    setMsg(null);
+    assignM.mutate(values);
+  };
+
+  const onRenew = (values: MembershipAssignFormValues) => {
+    setMsg(null);
+    renewM.mutate(values);
+  };
+
+  const onSwitch = (changeType: "UPGRADE" | "DOWNGRADE") => {
+    const values = getValues();
+    setMsg(null);
+    switchM.mutate({ values, changeType });
+  };
 
   const columns = [
     colHelper.accessor("name", { header: "Name" }),
@@ -90,13 +122,11 @@ export function AdminMembersPage() {
         <input
           className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
           placeholder="Member email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email")}
         />
         <select
           className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          value={planId}
-          onChange={(e) => setPlanId(e.target.value)}
+          {...register("planId")}
         >
           <option value="">Select plan</option>
           {(plansQ.data ?? [])
@@ -110,33 +140,33 @@ export function AdminMembersPage() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className="rounded bg-indigo-600 px-3 py-2 text-xs text-white"
-            onClick={() => assignM.mutate()}
-            disabled={!email || !planId}
+            className="rounded bg-indigo-600 px-3 py-2 text-xs text-white disabled:opacity-50"
+            onClick={handleSubmit(onAssign)}
+            disabled={!isValid}
           >
             Assign
           </button>
           <button
             type="button"
-            className="rounded bg-slate-700 px-3 py-2 text-xs text-white"
-            onClick={() => renewM.mutate()}
-            disabled={!email || !planId}
+            className="rounded bg-slate-700 px-3 py-2 text-xs text-white disabled:opacity-50"
+            onClick={handleSubmit(onRenew)}
+            disabled={!isValid}
           >
             Renew
           </button>
           <button
             type="button"
-            className="rounded bg-emerald-700 px-3 py-2 text-xs text-white"
-            onClick={() => switchM.mutate("UPGRADE")}
-            disabled={!email || !planId}
+            className="rounded bg-emerald-700 px-3 py-2 text-xs text-white disabled:opacity-50"
+            onClick={handleSubmit(() => onSwitch("UPGRADE"))}
+            disabled={!isValid}
           >
             Upgrade
           </button>
           <button
             type="button"
-            className="rounded bg-amber-700 px-3 py-2 text-xs text-white"
-            onClick={() => switchM.mutate("DOWNGRADE")}
-            disabled={!email || !planId}
+            className="rounded bg-amber-700 px-3 py-2 text-xs text-white disabled:opacity-50"
+            onClick={handleSubmit(() => onSwitch("DOWNGRADE"))}
+            disabled={!isValid}
           >
             Downgrade
           </button>

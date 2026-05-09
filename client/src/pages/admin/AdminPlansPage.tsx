@@ -15,29 +15,48 @@ import {
 
 const colHelper = createColumnHelper<PlanRow>();
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { planSchema, type PlanFormValues } from "../../schemas/gym";
+
 export function AdminPlansPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [days, setDays] = useState("30");
   const [err, setErr] = useState<string | null>(null);
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PlanFormValues>({
+    resolver: zodResolver(planSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      price: "",
+      days: "30",
+    },
+  });
+
   const createM = useMutation({
-    mutationFn: () =>
+    mutationFn: (values: PlanFormValues) =>
       createPlan({
-        name,
-        priceCents: Math.round(Number(price) * 100),
-        durationDays: Number(days),
+        name: values.name,
+        priceCents: Math.round(Number(values.price) * 100),
+        durationDays: Number(values.days),
       }),
     onSuccess: () => {
       setErr(null);
       void qc.invalidateQueries({ queryKey: ["plans"] });
-      setName("");
-      setPrice("");
+      reset();
     },
     onError: () => setErr("Could not create plan"),
   });
+
+  const onSubmit = (values: PlanFormValues) => {
+    createM.mutate(values);
+  };
 
   const deactM = useMutation({
     mutationFn: (id: string) => deactivatePlan(id),
@@ -95,40 +114,40 @@ export function AdminPlansPage() {
       </div>
       <form
         className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:grid-cols-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          createM.mutate();
-        }}
+        onSubmit={handleSubmit(onSubmit)}
       >
-        <input
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          placeholder="Price INR"
-          type="number"
-          step="0.01"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          required
-        />
-        <input
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          placeholder="Duration days"
-          type="number"
-          min={1}
-          value={days}
-          onChange={(e) => setDays(e.target.value)}
-          required
-        />
+        <div className="flex flex-col gap-1">
+          <input
+            className={`rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white ${errors.name ? 'border-red-500' : ''}`}
+            placeholder="Name"
+            {...register("name")}
+          />
+          {errors.name && <span className="text-[10px] text-red-500">{errors.name.message}</span>}
+        </div>
+        <div className="flex flex-col gap-1">
+          <input
+            className={`rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white ${errors.price ? 'border-red-500' : ''}`}
+            placeholder="Price INR"
+            type="number"
+            step="0.01"
+            {...register("price")}
+          />
+          {errors.price && <span className="text-[10px] text-red-500">{errors.price.message}</span>}
+        </div>
+        <div className="flex flex-col gap-1">
+          <input
+            className={`rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white ${errors.days ? 'border-red-500' : ''}`}
+            placeholder="Duration days"
+            type="number"
+            min={1}
+            {...register("days")}
+          />
+          {errors.days && <span className="text-[10px] text-red-500">{errors.days.message}</span>}
+        </div>
         <button
           type="submit"
           disabled={createM.isPending}
-          className="rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+          className="rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60 h-[38px] mt-0"
         >
           Add plan
         </button>

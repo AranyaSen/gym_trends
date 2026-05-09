@@ -7,24 +7,44 @@ import {
   unlinkTrainerMember,
 } from "../../services/adminApi";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { trainerLinkSchema, type TrainerLinkFormValues } from "../../schemas/gym";
+
 export function AdminTrainersPage() {
   const qc = useQueryClient();
   const tq = useQuery({ queryKey: ["trainers"], queryFn: fetchTrainers });
   const mq = useQuery({ queryKey: ["members"], queryFn: () => fetchMembers() });
-  const [trainerId, setTrainerId] = useState("");
-  const [memberId, setMemberId] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isValid },
+  } = useForm<TrainerLinkFormValues>({
+    resolver: zodResolver(trainerLinkSchema),
+    mode: "onChange",
+    defaultValues: {
+      trainerId: "",
+      memberId: "",
+    },
+  });
+
   const linkM = useMutation({
-    mutationFn: () => linkTrainerMember({ trainerId, memberId }),
+    mutationFn: (values: TrainerLinkFormValues) => linkTrainerMember(values),
     onSuccess: () => {
       setMsg("Linked");
-      setTrainerId("");
-      setMemberId("");
+      reset();
       void qc.invalidateQueries({ queryKey: ["trainers"] });
     },
     onError: () => setMsg("Link failed"),
   });
+
+  const onSubmit = (values: TrainerLinkFormValues) => {
+    setMsg(null);
+    linkM.mutate(values);
+  };
 
   const unlinkM = useMutation({
     mutationFn: (p: { t: string; m: string }) =>
@@ -40,11 +60,13 @@ export function AdminTrainersPage() {
           Link trainers to members (many-to-many).
         </p>
       </div>
-      <div className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 md:grid-cols-3">
+      <form
+        className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 md:grid-cols-3"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <select
           className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          value={trainerId}
-          onChange={(e) => setTrainerId(e.target.value)}
+          {...register("trainerId")}
         >
           <option value="">Trainer</option>
           {(tq.data ?? []).map((t) => (
@@ -55,8 +77,7 @@ export function AdminTrainersPage() {
         </select>
         <select
           className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
+          {...register("memberId")}
         >
           <option value="">Member</option>
           {(mq.data?.items ?? []).map((m) => (
@@ -66,14 +87,13 @@ export function AdminTrainersPage() {
           ))}
         </select>
         <button
-          type="button"
-          className="rounded bg-indigo-600 px-3 py-2 text-sm text-white"
-          disabled={!trainerId || !memberId}
-          onClick={() => linkM.mutate()}
+          type="submit"
+          className="rounded bg-indigo-600 px-3 py-2 text-sm text-white disabled:opacity-50"
+          disabled={!isValid || linkM.isPending}
         >
-          Link
+          {linkM.isPending ? "Linking…" : "Link"}
         </button>
-      </div>
+      </form>
       {msg && <p className="text-sm text-emerald-400">{msg}</p>}
       <ul className="space-y-2 text-sm text-slate-300">
         {(tq.data ?? []).map((t) => (

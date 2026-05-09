@@ -1,21 +1,36 @@
 import { useState } from "react";
 import { downloadExport } from "../../services/adminApi";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { exportSchema, type ExportFormValues } from "../../schemas/gym";
+
 export function AdminExportsPage() {
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
-  const params = () => {
+  const {
+    register,
+    getValues,
+  } = useForm<ExportFormValues>({
+    resolver: zodResolver(exportSchema),
+    mode: "onChange",
+    defaultValues: {
+      from: "",
+      to: "",
+    },
+  });
+
+  const getParams = () => {
+    const values = getValues();
     const p: Record<string, string> = {};
-    if (from) p.from = new Date(from).toISOString();
-    if (to) p.to = new Date(to).toISOString();
+    if (values.from) p.from = new Date(values.from).toISOString();
+    if (values.to) p.to = new Date(values.to).toISOString();
     return p;
   };
 
   const run = (path: string, name: string) => {
     setErr(null);
-    downloadExport(path, name, params()).catch(() =>
+    downloadExport(path, name, getParams()).catch(() =>
       setErr("Export failed — check date range.")
     );
   };
@@ -34,8 +49,7 @@ export function AdminExportsPage() {
           <input
             type="date"
             className="mt-1 block rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-white"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
+            {...register("from")}
           />
         </label>
         <label className="text-xs text-slate-400">
@@ -43,8 +57,7 @@ export function AdminExportsPage() {
           <input
             type="date"
             className="mt-1 block rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-white"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
+            {...register("to")}
           />
         </label>
       </div>

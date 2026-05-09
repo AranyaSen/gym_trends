@@ -2,17 +2,18 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { ROUTES } from "../constants/routes";
-import { mintQrToken } from "../services/authApi";
-import { Card } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
+import { ROUTES } from "../../constants/routes";
+import { mintQrToken } from "../../services/authApi";
+import { Card } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
 
 export function AdminQrPage() {
-  const [entry, setEntry] = useState<{ token: string; expiresAt: string } | null>(
-    null
-  );
+  const [entry, setEntry] = useState<{
+    token: string;
+    expiresAt: string;
+  } | null>(null);
   const [exit, setExit] = useState<{ token: string; expiresAt: string } | null>(
-    null
+    null,
   );
   const [err, setErr] = useState<string | null>(null);
 
@@ -40,10 +41,13 @@ export function AdminQrPage() {
   }, []);
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      mintEntry.mutate();
-      mintExit.mutate();
-    }, 9 * 60 * 1000);
+    const id = window.setInterval(
+      () => {
+        mintEntry.mutate();
+        mintExit.mutate();
+      },
+      9 * 60 * 1000,
+    );
     return () => window.clearInterval(id);
   }, []);
 
@@ -51,7 +55,9 @@ export function AdminQrPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-brand-bg md:bg-transparent">
       <div className="w-full max-w-4xl space-y-10">
         <header className="text-center space-y-2">
-          <h1 className="text-4xl font-black text-white">Entry & Exit Terminal</h1>
+          <h1 className="text-4xl font-black text-white">
+            Entry & Exit Terminal
+          </h1>
           <p className="text-brand-muted font-bold uppercase tracking-[0.2em] text-[10px]">
             Station ID: GYM-MAIN-01 • Next Refresh in ~9M
           </p>
@@ -66,10 +72,14 @@ export function AdminQrPage() {
         <div className="grid gap-8 md:grid-cols-2">
           <Card className="neon-border flex flex-col items-center text-center space-y-6 py-10 scale-100 md:hover:scale-[1.02] transition-transform">
             <div className="space-y-2">
-                <Badge variant="success" className="text-lg px-6 py-1">Entry</Badge>
-                <p className="text-[10px] text-brand-muted font-bold uppercase tracking-widest mt-2">Scan to Start Training</p>
+              <Badge variant="success" className="text-lg px-6 py-1">
+                Entry
+              </Badge>
+              <p className="text-[10px] text-brand-muted font-bold uppercase tracking-widest mt-2">
+                Scan to Start Training
+              </p>
             </div>
-            
+
             <div className="p-4 bg-white rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
               {entry?.token ? (
                 <QRCodeSVG value={entry.token} size={220} level="H" />
@@ -79,14 +89,18 @@ export function AdminQrPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="w-16 h-1 bg-brand-accent rounded-full" />
           </Card>
 
           <Card className="flex flex-col items-center text-center space-y-6 py-10 scale-100 md:hover:scale-[1.02] transition-transform">
             <div className="space-y-2">
-                <Badge variant="info" className="text-lg px-6 py-1">Exit</Badge>
-                <p className="text-[10px] text-brand-muted font-bold uppercase tracking-widest mt-2">Scan to Complete Session</p>
+              <Badge variant="info" className="text-lg px-6 py-1">
+                Exit
+              </Badge>
+              <p className="text-[10px] text-brand-muted font-bold uppercase tracking-widest mt-2">
+                Scan to Complete Session
+              </p>
             </div>
 
             <div className="p-4 bg-white rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
@@ -104,8 +118,8 @@ export function AdminQrPage() {
         </div>
 
         <footer className="text-center pt-6">
-          <Link 
-            className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors" 
+          <Link
+            className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
             to={ROUTES.admin}
           >
             ← Back to Dashboard
@@ -115,4 +129,3 @@ export function AdminQrPage() {
     </div>
   );
 }
-

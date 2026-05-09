@@ -9,30 +9,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card"
 import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { joinRegisterSchema, type JoinRegisterFormValues } from "../schemas/auth";
+
 export function JoinRegisterPage() {
   const nav = useNavigate();
   const { setToken } = useAuth();
-  const [joinCode, setJoinCode] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<"MEMBER" | "TRAINER">("MEMBER");
   const [err, setErr] = useState<string | null>(null);
 
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<JoinRegisterFormValues>({
+    resolver: zodResolver(joinRegisterSchema),
+    mode: "onChange",
+    defaultValues: {
+      joinCode: "",
+      role: "MEMBER",
+      name: "",
+      phone: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const selectedRole = watch("role");
+
   const m = useMutation({
-    mutationFn: () =>
-      registerJoin({
-        joinCode: joinCode.trim(),
-        email,
-        password,
-        name,
-        phone: phone || undefined,
-        role,
-      }),
+    mutationFn: (values: JoinRegisterFormValues) => registerJoin(values),
     onSuccess: (d) => {
       setToken(d.token);
-      nav(role === "TRAINER" ? ROUTES.trainer : ROUTES.member, {
+      nav(selectedRole === "TRAINER" ? ROUTES.trainer : ROUTES.member, {
         replace: true,
       });
     },
@@ -47,6 +57,11 @@ export function JoinRegisterPage() {
       setErr(msg || "Registration failed");
     },
   });
+
+  const onSubmit = (values: JoinRegisterFormValues) => {
+    setErr(null);
+    m.mutate(values);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-brand-bg relative overflow-hidden">
@@ -75,26 +90,19 @@ export function JoinRegisterPage() {
           <CardContent>
             <form
               className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setErr(null);
-                m.mutate();
-              }}
+              onSubmit={handleSubmit(onSubmit)}
             >
               <Input
                 label="Join Code"
                 placeholder="GYM-XXXX"
-                required
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
+                {...register("joinCode")}
+                error={errors.joinCode?.message}
               />
 
               <Select
                 label="Role"
-                value={role}
-                onChange={(e) =>
-                  setRole(e.target.value === "TRAINER" ? "TRAINER" : "MEMBER")
-                }
+                {...register("role")}
+                error={errors.role?.message}
               >
                 <option value="MEMBER">Member</option>
                 <option value="TRAINER">Trainer</option>
@@ -103,35 +111,31 @@ export function JoinRegisterPage() {
               <Input
                 label="Your Name"
                 placeholder="John Doe"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                {...register("name")}
+                error={errors.name?.message}
               />
 
               <Input
                 label="Phone (Optional)"
                 placeholder="+1 234 567 890"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                {...register("phone")}
+                error={errors.phone?.message}
               />
 
               <Input
                 label="Email"
                 type="email"
                 placeholder="name@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email")}
+                error={errors.email?.message}
               />
 
               <Input
                 label="Password"
                 type="password"
                 placeholder="••••••••"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register("password")}
+                error={errors.password?.message}
               />
 
               {err && (
