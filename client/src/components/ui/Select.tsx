@@ -1,6 +1,7 @@
 import { SelectHTMLAttributes, forwardRef, ReactNode } from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ChevronDown } from "lucide-react";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,19 +35,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {children}
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+            <ChevronDown className="h-4 w-4" />
           </div>
         </div>
         {error && <p className="text-xs font-medium text-red-500 ml-1">{error}</p>}

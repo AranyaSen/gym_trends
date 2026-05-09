@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 
 export type LocationType = {
   latitude: number;
@@ -7,29 +7,44 @@ export type LocationType = {
   timestamp: number;
 };
 
+export type LocationStatus = "idle" | "loading" | "success" | "denied" | "error";
+
 export const useTrackLocation = () => {
   const [location, setLocation] = useState<LocationType | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [status, setStatus] = useState<LocationStatus>("idle");
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: position.timestamp,
-          });
-          setLoading(false);
-        },
-        (error) => {
-          console.error(error);
-          setLoading(false);
-        },
-      );
+  const requestLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setStatus("error");
+      return;
     }
+    setStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: position.timestamp,
+        });
+        setStatus("success");
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        if (error.code === error.PERMISSION_DENIED) {
+          setStatus("denied");
+        } else {
+          setStatus("error");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
   }, []);
 
-  return { location, loading };
+  return {
+    location,
+    status,
+    loading: status === "loading",
+    requestLocation,
+  };
 };

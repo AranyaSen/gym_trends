@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import { scanAttendance } from "../services/authApi";
 import { useQrScanner, SCANNER_ELEMENT_ID } from "../hooks/useQrScanner";
+import { Check, X, Camera } from "lucide-react";
 
 type PageState = "idle" | "scanning" | "submitting" | "success" | "error";
 
@@ -177,9 +178,7 @@ function Spinner() {
 function SuccessIcon() {
   return (
     <div className="w-16 h-16 rounded-full bg-brand-accent/10 border-2 border-brand-accent flex items-center justify-center">
-      <svg className="w-8 h-8 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
+      <Check className="w-8 h-8 text-brand-accent stroke-[3]" />
     </div>
   );
 }
@@ -187,18 +186,11 @@ function SuccessIcon() {
 function ErrorIcon() {
   return (
     <div className="w-16 h-16 rounded-full bg-red-500/10 border-2 border-red-500 flex items-center justify-center">
-      <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-      </svg>
+      <X className="w-8 h-8 text-red-500 stroke-[3]" />
     </div>
   );
 }
 
 function CameraIcon() {
-  return (
-    <svg className="w-14 h-14 text-brand-accent/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
+  return <Camera className="w-14 h-14 text-brand-accent/40 stroke-[1.5]" />;
 }
