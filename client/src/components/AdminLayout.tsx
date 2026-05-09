@@ -31,10 +31,10 @@ export function AdminLayout() {
           <div className="flex items-center gap-8">
             <Link to={ROUTES.admin} className="group">
               <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50 group-hover:to-brand-accent transition-all duration-300">
-                ADMIN.PRO
+                GYM TRAC
               </h1>
             </Link>
-            
+
             <nav className="hidden md:flex items-center gap-1">
               {links.map((l) => {
                 const isActive = location.pathname === l.to;
@@ -42,8 +42,8 @@ export function AdminLayout() {
                   <Link
                     key={l.to}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
-                      isActive 
-                        ? "text-brand-accent bg-brand-accent/10 neon-border border" 
+                      isActive
+                        ? "text-brand-accent bg-brand-accent/10 neon-border border"
                         : "text-brand-muted hover:text-white hover:bg-white/5"
                     }`}
                     to={l.to}
@@ -90,4 +90,3 @@ export function AdminLayout() {
     </div>
   );
 }
-

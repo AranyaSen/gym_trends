@@ -16,6 +16,12 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { UserPlus, RefreshCw, TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Select } from "../../components/ui/Select";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
 import { membershipAssignSchema, type MembershipAssignFormValues } from "../../schemas/gym";
 
 const colHelper = createColumnHelper<MemberRow>();
@@ -91,14 +97,26 @@ export function AdminMembersPage() {
     colHelper.accessor("email", { header: "Email" }),
     colHelper.display({
       id: "plan",
-      header: "Plan / expiry",
+      header: "Active Membership",
       cell: (ctx) => {
         const m = ctx.row.original.memberships[0];
-        if (!m) return <span className="text-slate-500">—</span>;
+        if (!m) return <Badge variant="neutral">No Active Plan</Badge>;
+        
+        const isExpired = new Date(m.endDate) < new Date();
+        
         return (
-          <span>
-            {m.plan.name} · {new Date(m.endDate).toLocaleDateString()}
-          </span>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white">{m.plan.name}</span>
+              <Badge variant={isExpired ? "error" : "success"}>
+                {isExpired ? "Expired" : "Active"}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-brand-muted font-mono">
+              <Calendar className="w-3 h-3" />
+              Expires: {new Date(m.endDate).toLocaleDateString()}
+            </div>
+          </div>
         );
       },
     }),
@@ -111,93 +129,129 @@ export function AdminMembersPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Members</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Assign, renew, or change plans by member email.
-        </p>
-      </div>
-      <div className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 md:grid-cols-3">
-        <input
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          placeholder="Member email"
-          {...register("email")}
-        />
-        <select
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          {...register("planId")}
-        >
-          <option value="">Select plan</option>
-          {(plansQ.data ?? [])
-            .filter((p) => p.isActive)
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} — ₹{(p.priceCents / 100).toFixed(0)} / {p.durationDays}d
-              </option>
-            ))}
-        </select>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="rounded bg-indigo-600 px-3 py-2 text-xs text-white disabled:opacity-50"
-            onClick={handleSubmit(onAssign)}
-            disabled={!isValid}
-          >
-            Assign
-          </button>
-          <button
-            type="button"
-            className="rounded bg-slate-700 px-3 py-2 text-xs text-white disabled:opacity-50"
-            onClick={handleSubmit(onRenew)}
-            disabled={!isValid}
-          >
-            Renew
-          </button>
-          <button
-            type="button"
-            className="rounded bg-emerald-700 px-3 py-2 text-xs text-white disabled:opacity-50"
-            onClick={handleSubmit(() => onSwitch("UPGRADE"))}
-            disabled={!isValid}
-          >
-            Upgrade
-          </button>
-          <button
-            type="button"
-            className="rounded bg-amber-700 px-3 py-2 text-xs text-white disabled:opacity-50"
-            onClick={handleSubmit(() => onSwitch("DOWNGRADE"))}
-            disabled={!isValid}
-          >
-            Downgrade
-          </button>
+    <div className="space-y-8">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-white">Member Directory</h2>
+          <p className="text-brand-muted font-medium uppercase tracking-[0.2em] text-[10px] mt-1">
+            Manage gym access and subscriptions
+          </p>
         </div>
-      </div>
-      {msg && <p className="text-sm text-emerald-400">{msg}</p>}
-      <div className="overflow-x-auto rounded-xl border border-slate-800">
-        <table className="min-w-full text-left text-sm text-slate-200">
-          <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((h) => (
-                  <th key={h.id} className="px-3 py-2 font-medium">
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((r) => (
-              <tr key={r.id} className="border-t border-slate-800">
-                {r.getVisibleCells().map((c) => (
-                  <td key={c.id} className="px-3 py-2">
-                    {flexRender(c.column.columnDef.cell, c.getContext())}
+      </header>
+
+      <Card className="neon-border">
+        <CardHeader>
+          <CardTitle className="text-sm uppercase tracking-widest text-brand-muted">
+            Update Membership
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input
+                label="Member Email"
+                placeholder="search@member.com"
+                {...register("email")}
+              />
+              <Select
+                label="Select Plan"
+                {...register("planId")}
+              >
+                <option value="">Choose a plan...</option>
+                {(plansQ.data ?? [])
+                  .filter((p) => p.isActive)
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} — ₹{(p.priceCents / 100).toFixed(0)} / {p.durationDays}d
+                    </option>
+                  ))}
+              </Select>
+            </div>
+            
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="primary"
+                onClick={handleSubmit(onAssign)}
+                disabled={!isValid || assignM.isPending}
+                className="flex-1 min-w-[140px]"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                {assignM.isPending ? "Assigning..." : "Assign Plan"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSubmit(onRenew)}
+                disabled={!isValid || renewM.isPending}
+                className="flex-1 min-w-[140px]"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${renewM.isPending ? 'animate-spin' : ''}`} />
+                Renew
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleSubmit(() => onSwitch("UPGRADE"))}
+                disabled={!isValid || switchM.isPending}
+                className="flex-1 min-w-[140px] text-emerald-400 border-emerald-500/20"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Upgrade
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleSubmit(() => onSwitch("DOWNGRADE"))}
+                disabled={!isValid || switchM.isPending}
+                className="flex-1 min-w-[140px] text-amber-400 border-amber-500/20"
+              >
+                <TrendingDown className="w-4 h-4 mr-2" />
+                Downgrade
+              </Button>
+            </div>
+          </form>
+          {msg && (
+            <p className="mt-4 text-xs font-bold text-brand-accent uppercase tracking-wider text-center animate-pulse">
+              {msg}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="glass-card overflow-hidden border-brand-border/20 shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm text-slate-200">
+            <thead className="bg-white/5 text-[10px] uppercase font-black tracking-widest text-brand-muted border-b border-brand-border/20">
+              {table.getHeaderGroups().map((hg) => (
+                <tr key={hg.id}>
+                  {hg.headers.map((h) => (
+                    <th key={h.id} className="px-6 py-4">
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="px-6 py-20 text-center text-brand-muted italic">
+                    {q.isLoading ? "Fetching members..." : "No members found."}
                   </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((r) => (
+                  <tr key={r.id} className="hover:bg-white/5 transition-colors group">
+                    {r.getVisibleCells().map((c) => (
+                      <td key={c.id} className="px-6 py-4">
+                        <div className="text-sm font-medium">
+                          {flexRender(c.column.columnDef.cell, c.getContext())}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

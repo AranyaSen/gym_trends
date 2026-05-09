@@ -12,6 +12,11 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Plus, ShieldAlert } from "lucide-react";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
 
 const colHelper = createColumnHelper<PlanRow>();
 
@@ -71,17 +76,22 @@ export function AdminPlansPage() {
     }),
     colHelper.accessor("durationDays", { header: "Days" }),
     colHelper.accessor("isActive", {
-      header: "Active",
-      cell: (c) => (c.getValue() ? "Yes" : "No"),
+      header: "Status",
+      cell: (c) => (
+        <Badge variant={c.getValue() ? "success" : "neutral"}>
+          {c.getValue() ? "Active" : "Retired"}
+        </Badge>
+      ),
     }),
     colHelper.display({
       id: "actions",
-      header: "",
+      header: "Actions",
       cell: (ctx) =>
         ctx.row.original.isActive ? (
-          <button
-            type="button"
-            className="text-xs text-amber-400 hover:text-amber-300"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-amber-400 hover:text-amber-300 h-8 px-2"
             onClick={() => {
               if (
                 confirm(
@@ -92,9 +102,12 @@ export function AdminPlansPage() {
               }
             }}
           >
-            Deactivate
-          </button>
-        ) : null,
+            <ShieldAlert className="w-4 h-4 mr-1" />
+            Retire
+          </Button>
+        ) : (
+          <span className="text-[10px] text-brand-muted uppercase font-bold italic">No actions</span>
+        ),
     }),
   ];
 
@@ -105,79 +118,107 @@ export function AdminPlansPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Plans</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Unlimited tiers; deactivate when retiring a tier.
-        </p>
-      </div>
-      <form
-        className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:grid-cols-4"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="flex flex-col gap-1">
-          <input
-            className={`rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white ${errors.name ? 'border-red-500' : ''}`}
-            placeholder="Name"
-            {...register("name")}
-          />
-          {errors.name && <span className="text-[10px] text-red-500">{errors.name.message}</span>}
+    <div className="space-y-8">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-white">Membership Plans</h2>
+          <p className="text-brand-muted font-medium uppercase tracking-[0.2em] text-[10px] mt-1">
+            Configure your gym's subscription tiers
+          </p>
         </div>
-        <div className="flex flex-col gap-1">
-          <input
-            className={`rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white ${errors.price ? 'border-red-500' : ''}`}
-            placeholder="Price INR"
-            type="number"
-            step="0.01"
-            {...register("price")}
-          />
-          {errors.price && <span className="text-[10px] text-red-500">{errors.price.message}</span>}
-        </div>
-        <div className="flex flex-col gap-1">
-          <input
-            className={`rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white ${errors.days ? 'border-red-500' : ''}`}
-            placeholder="Duration days"
-            type="number"
-            min={1}
-            {...register("days")}
-          />
-          {errors.days && <span className="text-[10px] text-red-500">{errors.days.message}</span>}
-        </div>
-        <button
-          type="submit"
-          disabled={createM.isPending}
-          className="rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60 h-[38px] mt-0"
-        >
-          Add plan
-        </button>
-      </form>
-      {err && <p className="text-sm text-red-400">{err}</p>}
-      <div className="overflow-x-auto rounded-xl border border-slate-800">
-        <table className="min-w-full text-left text-sm text-slate-200">
-          <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((h) => (
-                  <th key={h.id} className="px-3 py-2 font-medium">
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((r) => (
-              <tr key={r.id} className="border-t border-slate-800">
-                {r.getVisibleCells().map((c) => (
-                  <td key={c.id} className="px-3 py-2">
-                    {flexRender(c.column.columnDef.cell, c.getContext())}
+      </header>
+
+      <Card className="neon-border overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-sm uppercase tracking-widest text-brand-muted">
+            Create New Plan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="grid gap-4 sm:grid-cols-4 items-end"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <Input
+              label="Tier Name"
+              placeholder="e.g. Gold Monthly"
+              error={errors.name?.message}
+              {...register("name")}
+            />
+            <Input
+              label="Price (INR)"
+              placeholder="2999"
+              type="number"
+              step="0.01"
+              error={errors.price?.message}
+              {...register("price")}
+            />
+            <Input
+              label="Duration (Days)"
+              placeholder="30"
+              type="number"
+              min={1}
+              error={errors.days?.message}
+              {...register("days")}
+            />
+            <Button
+              type="submit"
+              disabled={createM.isPending}
+              className="w-full h-11"
+            >
+              {createM.isPending ? "Creating..." : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Plan
+                </>
+              )}
+            </Button>
+          </form>
+          {err && (
+            <p className="mt-4 text-xs font-bold text-red-400 uppercase tracking-wider text-center">
+              {err}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="glass-card overflow-hidden border-brand-border/20 shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm text-slate-200">
+            <thead className="bg-white/5 text-[10px] uppercase font-black tracking-widest text-brand-muted border-b border-brand-border/20">
+              {table.getHeaderGroups().map((hg) => (
+                <tr key={hg.id}>
+                  {hg.headers.map((h) => (
+                    <th key={h.id} className="px-6 py-4">
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="px-6 py-20 text-center text-brand-muted italic">
+                    {q.isLoading ? "Loading tiers..." : "No membership plans found."}
                   </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((r) => (
+                  <tr key={r.id} className="hover:bg-white/5 transition-colors group">
+                    {r.getVisibleCells().map((c) => (
+                      <td key={c.id} className="px-6 py-4">
+                        <div className="text-sm font-medium">
+                          {flexRender(c.column.columnDef.cell, c.getContext())}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
