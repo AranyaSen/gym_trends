@@ -3,10 +3,20 @@ import { http } from "./http";
 type ApiOk<T> = { data: T; error: null };
 
 export async function login(body: { email: string; password: string }) {
-  const { data } = await http.post<ApiOk<{ token: string; user: unknown }>>(
+  const { data } = await http.post<ApiOk<{ token: string; user: unknown; membership: unknown; gym: unknown }>>(
     "/auth/login",
     body
   );
+  return data.data;
+}
+
+export async function fetchMe() {
+  const { data } = await http.get<ApiOk<{ 
+    user: unknown; 
+    membership: any; 
+    gym: { onlinePaymentsEnabled: boolean } | null;
+    pendingPlanRequest: boolean;
+  }>>("/auth/me");
   return data.data;
 }
 

@@ -18,6 +18,8 @@ import { requireAuth, requireGym } from "../middleware/auth";
 import { requireRoles } from "../middleware/rbac";
 import { Role } from "@prisma/client";
 
+import * as planRequestController from "../controllers/planRequest.controller";
+
 export const apiRouter = Router();
 
 apiRouter.post("/auth/register/admin", authController.registerAdmin);
@@ -63,6 +65,38 @@ apiRouter.post(
   requireGym,
   requireRoles(Role.ADMIN),
   planController.deactivatePlan
+);
+
+apiRouter.post(
+  "/plan-requests",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.MEMBER),
+  planRequestController.createRequest
+);
+
+apiRouter.get(
+  "/plan-requests",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  planRequestController.listRequests
+);
+
+apiRouter.post(
+  "/plan-requests/:id/approve",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  planRequestController.approveRequest
+);
+
+apiRouter.post(
+  "/plan-requests/:id/reject",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  planRequestController.rejectRequest
 );
 
 apiRouter.post(

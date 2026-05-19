@@ -11,12 +11,17 @@ import {
   type MemberRow,
 } from "../../services/adminApi";
 import {
+  fetchPlanRequests,
+  approvePlanRequest,
+  rejectPlanRequest,
+} from "../../services/planRequestApi";
+import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { UserPlus, RefreshCw, TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { UserPlus, RefreshCw, TrendingUp, TrendingDown, Calendar, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
@@ -30,6 +35,7 @@ export function AdminMembersPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["members"], queryFn: () => fetchMembers() });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
+  const reqsQ = useQuery({ queryKey: ["planRequests"], queryFn: fetchPlanRequests });
   const [msg, setMsg] = useState<string | null>(null);
 
   const {
@@ -74,6 +80,21 @@ export function AdminMembersPage() {
       void qc.invalidateQueries({ queryKey: ["members"] });
     },
     onError: () => setMsg("Switch failed"),
+  });
+
+  const approveM = useMutation({
+    mutationFn: approvePlanRequest,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["planRequests"] });
+      void qc.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+
+  const rejectM = useMutation({
+    mutationFn: rejectPlanRequest,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["planRequests"] });
+    },
   });
 
   const onAssign = (values: MembershipAssignFormValues) => {
@@ -139,6 +160,48 @@ export function AdminMembersPage() {
         </div>
       </header>
 
+      {reqsQ.data && reqsQ.data.length > 0 && (
+        <Card className="neon-border border-yellow-500/20">
+          <CardHeader>
+            <CardTitle className="text-sm uppercase tracking-widest text-yellow-500 flex items-center gap-2">
+              Pending Plan Requests ({reqsQ.data.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {reqsQ.data.map((req: any) => (
+              <div key={req.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg gap-4">
+                <div>
+                  <p className="text-white font-bold">{req.user.name} <span className="text-brand-muted font-normal">({req.user.email})</span></p>
+                  <p className="text-sm text-brand-muted mt-1">
+                    Requested Plan: <span className="text-brand-accent font-bold">{req.plan.name}</span> - ₹{(req.plan.priceCents / 100).toFixed(0)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button 
+                    size="sm" 
+                    variant="primary"
+                    disabled={approveM.isPending}
+                    onClick={() => approveM.mutate(req.id)}
+                    className="w-full md:w-auto"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    disabled={rejectM.isPending}
+                    onClick={() => rejectM.mutate(req.id)}
+                    className="w-full md:w-auto text-red-400 hover:text-red-300"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" /> Reject
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="neon-border">
         <CardHeader>
           <CardTitle className="text-sm uppercase tracking-widest text-brand-muted">
@@ -159,8 +222,8 @@ export function AdminMembersPage() {
               >
                 <option value="">Choose a plan...</option>
                 {(plansQ.data ?? [])
-                  .filter((p) => p.isActive)
-                  .map((p) => (
+                  .filter((p: any) => p.isActive)
+                  .map((p: any) => (
                     <option key={p.id} value={p.id}>
                       {p.name} — ₹{(p.priceCents / 100).toFixed(0)} / {p.durationDays}d
                     </option>

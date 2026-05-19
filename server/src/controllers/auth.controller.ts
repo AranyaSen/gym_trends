@@ -68,7 +68,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     const { error, value } = loginSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
     const out = await authService.login(value);
-    return ok(res, { token: out.token, user: sanitizeUser(out.user) });
+    const { pendingPlanRequest } = await authService.getUserDetails(out.user.id, out.user.gymId);
+    return ok(res, { 
+      token: out.token, 
+      user: sanitizeUser(out.user),
+      membership: out.membership,
+      gym: out.gym ? { onlinePaymentsEnabled: out.gym.onlinePaymentsEnabled } : null,
+      pendingPlanRequest
+    });
   } catch (e) {
     next(e);
   }
@@ -77,7 +84,13 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 export async function me(req: Request, res: Response, next: NextFunction) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
-    return ok(res, { user: { id: u.id, role: u.role, gymId: u.gymId } });
+    const { membership, gym, pendingPlanRequest } = await authService.getUserDetails(u.id, u.gymId);
+    return ok(res, { 
+      user: { id: u.id, role: u.role, gymId: u.gymId },
+      membership,
+      gym: gym ? { onlinePaymentsEnabled: gym.onlinePaymentsEnabled } : null,
+      pendingPlanRequest
+    });
   } catch (e) {
     next(e);
   }
