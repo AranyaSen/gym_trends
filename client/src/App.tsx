@@ -19,6 +19,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { MemberHomePage } from "./pages/MemberHomePage";
 import { MemberScanPage } from "./pages/MemberScanPage";
 import { TrainerHomePage } from "./pages/TrainerHomePage";
+import { AdminPreferencesPage } from "./pages/admin/AdminPreferencesPage";
 
 const qc = new QueryClient();
 
@@ -41,6 +42,7 @@ export function App() {
             }
           >
             <Route index element={<AdminDashboardPage />} />
+            <Route path="preferences" element={<AdminPreferencesPage />} />
             <Route path="setup" element={<AdminSetupPage />} />
             <Route path="qr" element={<AdminQrPage />} />
             <Route path="plans" element={<AdminPlansPage />} />

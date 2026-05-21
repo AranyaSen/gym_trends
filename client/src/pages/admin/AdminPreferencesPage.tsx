@@ -1,14 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { updateGymSettings, type GymRecord } from "../../services/authApi";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../ui/Card";
-import { Button } from "../ui/Button";
-import { GymLocationPicker } from "../ui/GymLocationPicker";
+import { updateGymSettings, fetchMyGym, type GymRecord } from "../../services/authApi";
 import { useTrackLocation } from "../../hooks/useTrackLocation";
 import {
   Check,
@@ -19,6 +11,14 @@ import {
   Shield,
   CreditCard,
 } from "lucide-react";
+import { GymLocationPicker } from "../../components/ui/GymLocationPicker";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
 
 function SettingsToggle({
   id,
@@ -65,13 +65,21 @@ function SettingsToggle({
   );
 }
 
-export function AdminGymSettingsSection({ gym }: { gym: GymRecord }) {
+export function AdminPreferencesPage({ gym: propGym }: { gym?: GymRecord }) {
   const qc = useQueryClient();
+  const gq = useQuery({
+    queryKey: ["gym"],
+    queryFn: fetchMyGym,
+    enabled: !propGym,
+  });
+
+  const gym = propGym || gq.data;
+
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
-  const [draftLat, setDraftLat] = useState(gym.latitude);
-  const [draftLng, setDraftLng] = useState(gym.longitude);
+  const [draftLat, setDraftLat] = useState(gym?.latitude ?? 0);
+  const [draftLng, setDraftLng] = useState(gym?.longitude ?? 0);
   const [locationDirty, setLocationDirty] = useState(false);
 
   const { location, status, loading, requestLocation } = useTrackLocation();
@@ -79,10 +87,12 @@ export function AdminGymSettingsSection({ gym }: { gym: GymRecord }) {
   const hasValidLocation = draftLat !== 0 && draftLng !== 0;
 
   useEffect(() => {
-    setDraftLat(gym.latitude);
-    setDraftLng(gym.longitude);
-    setLocationDirty(false);
-  }, [gym.latitude, gym.longitude]);
+    if (gym) {
+      setDraftLat(gym.latitude);
+      setDraftLng(gym.longitude);
+      setLocationDirty(false);
+    }
+  }, [gym?.latitude, gym?.longitude]);
 
   useEffect(() => {
     if (location && status === "success" && !hasValidLocation) {
@@ -151,6 +161,14 @@ export function AdminGymSettingsSection({ gym }: { gym: GymRecord }) {
     } else {
       requestLocation();
     }
+  }
+
+  if (!gym) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-brand-accent"></div>
+      </div>
+    );
   }
 
   return (
@@ -288,7 +306,9 @@ export function AdminGymSettingsSection({ gym }: { gym: GymRecord }) {
                 disabled={locationMutation.isPending || !hasValidLocation}
                 onClick={() => locationMutation.mutate()}
               >
-                {locationMutation.isPending ? "Saving location…" : "Save location"}
+                {locationMutation.isPending
+                  ? "Saving location…"
+                  : "Save location"}
               </Button>
             )}
           </div>

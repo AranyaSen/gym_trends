@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "./ui/Button";
+import { Settings } from "lucide-react";
 
 const links: { to: string; label: string }[] = [
   { to: ROUTES.admin, label: "Overview" },
@@ -56,10 +57,24 @@ export function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-4">
+            <div
+              className="flex items-center cursor-pointer"
+              onClick={() => {
+                nav(ROUTES.adminPreferences);
+              }}
+            >
+              <Settings
+                className={`w-5 h-5 transition-colors ${
+                  location.pathname === ROUTES.adminPreferences
+                    ? "text-brand-accent"
+                    : "text-brand-muted hover:text-brand-accent"
+                }`}
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"
-              className="text-[10px] h-8"
+              className="text-[10px] h-8 flex justify-end"
               onClick={() => {
                 logout();
                 nav(ROUTES.home);

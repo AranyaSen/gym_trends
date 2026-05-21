@@ -3,8 +3,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
 import { fetchDashboard } from "../../services/adminApi";
-import { fetchMyGym, type GymRecord } from "../../services/authApi";
-import { AdminGymSettingsSection } from "../../components/admin/AdminGymSettingsSection";
+import { fetchMyGym } from "../../services/authApi";
 import {
   Card,
   CardContent,
@@ -41,7 +40,6 @@ export function AdminDashboardPage() {
   }
 
   const s = q.data!;
-  const gym = gq.data as GymRecord | undefined;
 
   return (
     <div className="space-y-10">
@@ -71,15 +69,9 @@ export function AdminDashboardPage() {
                 {(gq.data as any)?.joinCode || "----"}
               </span>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center group-hover:bg-brand-accent/20 transition-colors">
-              <span className="text-xs px-4 py-2">Copy</span>
+            <div className="h-8 px-4 py-2 rounded-lg bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center group-hover:bg-brand-accent/20 transition-colors">
+              <span className="text-xs">Copy</span>
             </div>
-          </div>
-          <div className="px-4 py-2 glass-card border-brand-accent/5 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-accent">
-              Live Status
-            </span>
           </div>
         </div>
       </header>
@@ -102,8 +94,6 @@ export function AdminDashboardPage() {
         />
         <Stat label="Inactive (7d)" value={s.inactiveMembers} variant="muted" />
       </div>
-
-      {gym?.setupCompleted && <AdminGymSettingsSection gym={gym} />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 neon-border">

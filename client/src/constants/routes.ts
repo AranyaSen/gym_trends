@@ -5,6 +5,7 @@ export const ROUTES = {
   register: "/auth/register",
   admin: "/admin",
   adminSetup: "/admin/setup",
+  adminPreferences: "/admin/preferences",
   adminQr: "/admin/qr",
   adminPlans: "/admin/plans",
   adminMembers: "/admin/members",
