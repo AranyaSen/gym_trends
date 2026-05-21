@@ -1,7 +1,8 @@
-import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
-import { scanAttendance } from "../services/authApi";
+import { fetchMe, scanAttendance } from "../services/authApi";
 import { useQrScanner, SCANNER_ELEMENT_ID } from "../hooks/useQrScanner";
 import { Check, X, Camera } from "lucide-react";
 
@@ -9,7 +10,6 @@ type PageState = "idle" | "scanning" | "submitting" | "success" | "error";
 
 interface ScanResult {
   ignored?: boolean;
-  type?: "ENTRY" | "EXIT";
 }
 
 function getPosition(): Promise<GeolocationPosition> {
@@ -21,60 +21,94 @@ function getPosition(): Promise<GeolocationPosition> {
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: true,
       timeout: 15_000,
+      maximumAge: 120_000,
     });
   });
 }
 
-function parseApiError(err: Error & { response?: { data?: { error?: { message?: string } } } }): string {
-  return err.response?.data?.error?.message ?? err.message ?? "Network error. Please try again.";
+function parseApiError(
+  err: Error & { response?: { data?: { error?: { message?: string } } } },
+): string {
+  return (
+    err.response?.data?.error?.message ??
+    err.message ??
+    "Network error. Please try again."
+  );
 }
 
 export function MemberScanPage() {
   const [pageState, setPageState] = useState<PageState>("idle");
   const [message, setMessage] = useState("");
+  const positionPromiseRef = useRef<Promise<GeolocationPosition> | null>(null);
+
+  const meQuery = useQuery({ queryKey: ["me"], queryFn: fetchMe });
+  const geoRequired = meQuery.data?.gym?.geoFencingEnabled !== false;
 
   const handleDetected = useCallback(async (rawValue: string) => {
     setPageState("submitting");
     setMessage("");
     try {
-      const pos = await getPosition();
-      const result = await scanAttendance({
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+      if (geoRequired) {
+        const pos = await (positionPromiseRef.current ?? getPosition());
+        latitude = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+      }
+      const result = (await scanAttendance({
         token: rawValue.trim(),
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-      }) as ScanResult;
+        latitude,
+        longitude,
+      })) as ScanResult;
 
       if (result.ignored) {
         setMessage("Already recorded — duplicate scan ignored.");
       } else {
-        setMessage(result.type === "EXIT" ? "✓ Checked out successfully!" : "✓ Checked in successfully!");
+        setMessage("✓ Checked in successfully!");
       }
       setPageState("success");
     } catch (err) {
-      setMessage(parseApiError(err as Error & { response?: { data?: { error?: { message?: string } } } }));
+      setMessage(
+        parseApiError(
+          err as Error & {
+            response?: { data?: { error?: { message?: string } } };
+          },
+        ),
+      );
       setPageState("error");
+    } finally {
+      positionPromiseRef.current = null;
     }
-  }, []);
+  }, [geoRequired]);
 
   const { cameraState, cameraError, startCamera, stopCamera } = useQrScanner({
     onDetected: handleDetected,
   });
 
   const isScanning = cameraState === "scanning";
-  const effectiveState: PageState = cameraState === "scanning" ? "scanning"
-    : cameraState === "error" ? "error"
-    : pageState;
+  const effectiveState: PageState =
+    pageState === "submitting" ||
+    pageState === "success" ||
+    pageState === "error"
+      ? pageState
+      : cameraState === "scanning"
+        ? "scanning"
+        : cameraState === "error"
+          ? "error"
+          : pageState;
 
   const displayError = cameraState === "error" ? cameraError : message;
 
   async function handleStart() {
     setPageState("idle");
     setMessage("");
+    positionPromiseRef.current = geoRequired ? getPosition() : null;
     await startCamera();
   }
 
   async function handleCancel() {
     await stopCamera();
+    positionPromiseRef.current = null;
     setPageState("idle");
   }
 
@@ -93,14 +127,12 @@ export function MemberScanPage() {
         {/* Camera container — div always stays in DOM so html5-qrcode never loses its ref */}
         <div className="relative rounded-2xl overflow-hidden border border-brand-accent/20 bg-black/60 backdrop-blur-sm shadow-[0_0_40px_rgba(0,0,0,0.5)]">
           {isScanning && <ScannerOverlay />}
-
           {/* html5-qrcode mounts here — always rendered, hidden when not scanning */}
           <div
             id={SCANNER_ELEMENT_ID}
             className={isScanning ? "block" : "hidden"}
             style={{ width: "100%" }}
           />
-
           {!isScanning && (
             <div className="flex flex-col items-center justify-center py-16 px-6 gap-4">
               {effectiveState === "submitting" && <Spinner />}
@@ -108,20 +140,27 @@ export function MemberScanPage() {
               {effectiveState === "error" && <ErrorIcon />}
               {effectiveState === "idle" && <CameraIcon />}
 
-              <StatusMessage state={effectiveState} message={displayError || message} />
+              <StatusMessage
+                state={effectiveState}
+                message={displayError || message}
+              />
             </div>
           )}
         </div>
 
         {/* Action buttons */}
         <div className="space-y-3">
-          {(effectiveState === "idle" || effectiveState === "error" || effectiveState === "success") && (
+          {(effectiveState === "idle" ||
+            effectiveState === "error" ||
+            effectiveState === "success") && (
             <button
               id="btn-start-camera"
               onClick={handleStart}
               className="w-full h-12 rounded-xl bg-brand-accent text-brand-bg font-bold text-sm uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all"
             >
-              {effectiveState === "error" || effectiveState === "success" ? "Scan Again" : "Start Camera"}
+              {effectiveState === "error" || effectiveState === "success"
+                ? "Scan Again"
+                : "Start Camera"}
             </button>
           )}
 
@@ -164,15 +203,39 @@ function ScannerOverlay() {
   );
 }
 
-function StatusMessage({ state, message }: { state: PageState; message: string }) {
-  if (state === "submitting") return <p className="text-brand-muted text-sm">Verifying attendance…</p>;
-  if (state === "success") return <p className="text-brand-accent font-bold text-center text-lg">{message}</p>;
-  if (state === "error") return <p className="text-red-400 font-medium text-center text-sm leading-relaxed">{message}</p>;
-  return <p className="text-brand-muted text-sm text-center">Tap <span className="text-brand-accent font-bold">Start Camera</span> to begin scanning.</p>;
+function StatusMessage({
+  state,
+  message,
+}: {
+  state: PageState;
+  message: string;
+}) {
+  if (state === "submitting")
+    return <p className="text-brand-muted text-sm">Verifying attendance…</p>;
+  if (state === "success")
+    return (
+      <p className="text-brand-accent font-bold text-center text-lg">
+        {message}
+      </p>
+    );
+  if (state === "error")
+    return (
+      <p className="text-red-400 font-medium text-center text-sm leading-relaxed">
+        {message}
+      </p>
+    );
+  return (
+    <p className="text-brand-muted text-sm text-center">
+      Tap <span className="text-brand-accent font-bold">Start Camera</span> to
+      begin scanning.
+    </p>
+  );
 }
 
 function Spinner() {
-  return <div className="w-12 h-12 rounded-full border-2 border-brand-accent/30 border-t-brand-accent animate-spin" />;
+  return (
+    <div className="w-12 h-12 rounded-full border-2 border-brand-accent/30 border-t-brand-accent animate-spin" />
+  );
 }
 
 function SuccessIcon() {

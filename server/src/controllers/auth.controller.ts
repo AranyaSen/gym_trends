@@ -73,7 +73,12 @@ export async function login(req: Request, res: Response, next: NextFunction) {
       token: out.token, 
       user: sanitizeUser(out.user),
       membership: out.membership,
-      gym: out.gym ? { onlinePaymentsEnabled: out.gym.onlinePaymentsEnabled } : null,
+      gym: out.gym
+        ? {
+            onlinePaymentsEnabled: out.gym.onlinePaymentsEnabled,
+            geoFencingEnabled: out.gym.geoFencingEnabled,
+          }
+        : null,
       pendingPlanRequest
     });
   } catch (e) {
@@ -88,7 +93,12 @@ export async function me(req: Request, res: Response, next: NextFunction) {
     return ok(res, { 
       user: { id: u.id, role: u.role, gymId: u.gymId },
       membership,
-      gym: gym ? { onlinePaymentsEnabled: gym.onlinePaymentsEnabled } : null,
+      gym: gym
+        ? {
+            onlinePaymentsEnabled: gym.onlinePaymentsEnabled,
+            geoFencingEnabled: gym.geoFencingEnabled,
+          }
+        : null,
       pendingPlanRequest
     });
   } catch (e) {

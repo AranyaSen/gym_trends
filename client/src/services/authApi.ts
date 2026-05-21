@@ -14,7 +14,10 @@ export async function fetchMe() {
   const { data } = await http.get<ApiOk<{ 
     user: unknown; 
     membership: any; 
-    gym: { onlinePaymentsEnabled: boolean } | null;
+    gym: {
+      onlinePaymentsEnabled: boolean;
+      geoFencingEnabled: boolean;
+    } | null;
     pendingPlanRequest: boolean;
   }>>("/auth/me");
   return data.data;
@@ -49,7 +52,7 @@ export async function registerJoin(body: {
 }
 
 export async function fetchMyGym() {
-  const { data } = await http.get<ApiOk<{ gym: unknown }>>("/gym");
+  const { data } = await http.get<ApiOk<{ gym: GymRecord }>>("/gym");
   return data.data.gym;
 }
 
@@ -64,7 +67,32 @@ export async function completeGymSetup(body: {
   return data.data.gym;
 }
 
-export async function mintQrToken(body: { type: "ENTRY" | "EXIT" }) {
+export type GymRecord = {
+  id: string;
+  name: string;
+  joinCode: string;
+  latitude: number;
+  longitude: number;
+  gracePeriodDays: number;
+  onlinePaymentsEnabled: boolean;
+  geoFencingEnabled: boolean;
+  setupCompleted: boolean;
+};
+
+export async function updateGymSettings(body: {
+  onlinePaymentsEnabled?: boolean;
+  geoFencingEnabled?: boolean;
+  latitude?: number;
+  longitude?: number;
+}) {
+  const { data } = await http.patch<ApiOk<{ gym: GymRecord }>>(
+    "/gym/settings",
+    body,
+  );
+  return data.data.gym;
+}
+
+export async function mintQrToken(body: { type: "ENTRY" }) {
   const { data } = await http.post<ApiOk<{ token: string; expiresAt: string }>>(
     "/qr/token",
     body
@@ -74,8 +102,8 @@ export async function mintQrToken(body: { type: "ENTRY" | "EXIT" }) {
 
 export async function scanAttendance(body: {
   token: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
 }) {
   const { data } = await http.post<ApiOk<unknown>>("/attendance/scan", body);
   return data.data;

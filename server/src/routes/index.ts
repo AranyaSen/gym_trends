@@ -35,6 +35,13 @@ apiRouter.patch(
   requireRoles(Role.ADMIN),
   gymController.completeSetup
 );
+apiRouter.patch(
+  "/gym/settings",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  gymController.updateSettings
+);
 
 apiRouter.get(
   "/dashboard",

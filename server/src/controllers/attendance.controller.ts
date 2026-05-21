@@ -7,8 +7,8 @@ import type { AuthedUser } from "../middleware/auth";
 
 const scanSchema = Joi.object({
   token: Joi.string().required(),
-  latitude: Joi.number().required(),
-  longitude: Joi.number().required(),
+  latitude: Joi.number().optional(),
+  longitude: Joi.number().optional(),
 });
 
 export async function scan(req: Request, res: Response, next: NextFunction) {

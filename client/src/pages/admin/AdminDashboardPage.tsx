@@ -3,7 +3,8 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
 import { fetchDashboard } from "../../services/adminApi";
-import { fetchMyGym } from "../../services/authApi";
+import { fetchMyGym, type GymRecord } from "../../services/authApi";
+import { AdminGymSettingsSection } from "../../components/admin/AdminGymSettingsSection";
 import {
   Card,
   CardContent,
@@ -40,6 +41,7 @@ export function AdminDashboardPage() {
   }
 
   const s = q.data!;
+  const gym = gq.data as GymRecord | undefined;
 
   return (
     <div className="space-y-10">
@@ -100,6 +102,8 @@ export function AdminDashboardPage() {
         />
         <Stat label="Inactive (7d)" value={s.inactiveMembers} variant="muted" />
       </div>
+
+      {gym?.setupCompleted && <AdminGymSettingsSection gym={gym} />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 neon-border">
