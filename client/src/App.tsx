@@ -20,67 +20,70 @@ import { MemberHomePage } from "./pages/MemberHomePage";
 import { MemberScanPage } from "./pages/MemberScanPage";
 import { TrainerHomePage } from "./pages/TrainerHomePage";
 import { AdminPreferencesPage } from "./pages/admin/AdminPreferencesPage";
+import { ToastProvider } from "./components/ui/Toast";
 
 const qc = new QueryClient();
 
 export function App() {
   return (
     <QueryClientProvider client={qc}>
-      <BrowserRouter>
-        <Routes>
-          <Route path={ROUTES.home} element={<HomePage />} />
-          <Route path={ROUTES.adminRegister} element={<AdminRegisterPage />} />
-          <Route path={ROUTES.login} element={<LoginPage />} />
-          <Route path={ROUTES.register} element={<JoinRegisterPage />} />
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path={ROUTES.home} element={<HomePage />} />
+            <Route path={ROUTES.adminRegister} element={<AdminRegisterPage />} />
+            <Route path={ROUTES.login} element={<LoginPage />} />
+            <Route path={ROUTES.register} element={<JoinRegisterPage />} />
 
-          <Route
-            path="/admin"
-            element={
-              <RequireAuth roles={["ADMIN"]}>
-                <AdminLayout />
-              </RequireAuth>
-            }
-          >
-            <Route index element={<AdminDashboardPage />} />
-            <Route path="preferences" element={<AdminPreferencesPage />} />
-            <Route path="setup" element={<AdminSetupPage />} />
-            <Route path="qr" element={<AdminQrPage />} />
-            <Route path="plans" element={<AdminPlansPage />} />
-            <Route path="members" element={<AdminMembersPage />} />
-            <Route path="trainers" element={<AdminTrainersPage />} />
-            <Route path="attendance" element={<AdminAttendancePage />} />
-            <Route path="exports" element={<AdminExportsPage />} />
-            <Route path="audit" element={<AdminAuditPage />} />
-          </Route>
+            <Route
+              path="/admin"
+              element={
+                <RequireAuth roles={["ADMIN"]}>
+                  <AdminLayout />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="preferences" element={<AdminPreferencesPage />} />
+              <Route path="setup" element={<AdminSetupPage />} />
+              <Route path="qr" element={<AdminQrPage />} />
+              <Route path="plans" element={<AdminPlansPage />} />
+              <Route path="members" element={<AdminMembersPage />} />
+              <Route path="trainers" element={<AdminTrainersPage />} />
+              <Route path="attendance" element={<AdminAttendancePage />} />
+              <Route path="exports" element={<AdminExportsPage />} />
+              <Route path="audit" element={<AdminAuditPage />} />
+            </Route>
 
-          <Route
-            path={ROUTES.member}
-            element={
-              <RequireAuth roles={["MEMBER"]}>
-                <MemberHomePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path={ROUTES.memberScan}
-            element={
-              <RequireAuth roles={["MEMBER", "TRAINER"]}>
-                <MemberScanPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path={ROUTES.trainer}
-            element={
-              <RequireAuth roles={["TRAINER"]}>
-                <TrainerHomePage />
-              </RequireAuth>
-            }
-          />
+            <Route
+              path={ROUTES.member}
+              element={
+                <RequireAuth roles={["MEMBER"]}>
+                  <MemberHomePage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path={ROUTES.memberScan}
+              element={
+                <RequireAuth roles={["MEMBER", "TRAINER"]}>
+                  <MemberScanPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path={ROUTES.trainer}
+              element={
+                <RequireAuth roles={["TRAINER"]}>
+                  <TrainerHomePage />
+                </RequireAuth>
+              }
+            />
 
-          <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

@@ -10,9 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/Card";
+import { useToast } from "../../components/ui/Toast";
 
 export function AdminDashboardPage() {
   const nav = useNavigate();
+  const toast = useToast();
   const gq = useQuery({ queryKey: ["gym"], queryFn: fetchMyGym });
   const q = useQuery({ queryKey: ["dashboard"], queryFn: fetchDashboard });
 
@@ -57,7 +59,7 @@ export function AdminDashboardPage() {
               const code = (gq.data as any)?.joinCode;
               if (code) {
                 navigator.clipboard.writeText(code);
-                alert("Gym Code copied to clipboard!");
+                toast.success("Gym Code copied to clipboard!");
               }
             }}
           >

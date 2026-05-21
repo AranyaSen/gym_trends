@@ -7,6 +7,7 @@ import { Button } from "../components/ui/Button";
 import { fetchMe } from "../services/authApi";
 import { createPlanRequest, createRazorpayOrder, fetchPlans } from "../services/planRequestApi";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../components/ui/Toast";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -22,6 +23,7 @@ function loadRazorpayScript() {
 export function MemberHomePage() {
   const { logout } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const { data, isLoading } = useQuery({
     queryKey: ["auth_me"],
@@ -45,7 +47,7 @@ export function MemberHomePage() {
     mutationFn: createRazorpayOrder,
     onSuccess: async (orderData) => {
       const loaded = await loadRazorpayScript();
-      if (!loaded) return alert("Failed to load payment gateway");
+      if (!loaded) return toast.error("Failed to load payment gateway");
 
       const options = {
         key: orderData.keyId,
