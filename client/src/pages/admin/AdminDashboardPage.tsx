@@ -167,15 +167,6 @@ export function AdminDashboardPage() {
               </Link>
             </CardContent>
           </div>
-          <div className="p-6 mt-4 rounded-2xl bg-gradient-to-br from-brand-accent to-brand-accent/60 p-1">
-            <div className="bg-brand-bg rounded-[14px] p-5">
-              <h4 className="text-xs font-black text-white">PRO TIP</h4>
-              <p className="text-[10px] text-brand-muted mt-2 leading-relaxed italic">
-                "Peak hours are between 17:00 and 19:00. Consider assigning more
-                trainers during this window."
-              </p>
-            </div>
-          </div>
         </Card>
       </div>
     </div>

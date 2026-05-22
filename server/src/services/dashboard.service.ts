@@ -42,11 +42,11 @@ export async function getDashboardStats(gymId: string) {
   });
 
   const peak = await prisma.$queryRaw<Array<{ h: number; c: bigint }>>`
-    SELECT (EXTRACT(HOUR FROM "checkInAt"))::int AS h, COUNT(*)::bigint AS c
+    SELECT (EXTRACT(HOUR FROM "checkInAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata'))::int AS h, COUNT(*)::bigint AS c
     FROM "Attendance"
     WHERE "gymId" = ${gymId}
       AND "checkInAt" >= ${ago30}
-    GROUP BY EXTRACT(HOUR FROM "checkInAt")
+    GROUP BY EXTRACT(HOUR FROM "checkInAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')
     ORDER BY c DESC
     LIMIT 5
   `;

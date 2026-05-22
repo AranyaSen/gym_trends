@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg"],
+      includeAssets: ["favicon.png"],
       manifest: {
         name: "gym-trac",
         short_name: "gym-trac",
@@ -18,7 +18,7 @@ export default defineConfig({
         start_url: "/",
         icons: [
           {
-            src: "/favicon.svg",
+            src: "/favicon.png",
             sizes: "any",
             type: "image/svg+xml",
             purpose: "any",

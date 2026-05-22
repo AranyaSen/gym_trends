@@ -13,13 +13,16 @@ import {
 import { Save, Clock, Monitor } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/Card";
 
 type Row = {
   id: string;
   checkInAt: string;
-  checkOutAt: string | null;
   source: string;
   user: { email: string; name: string };
 };
@@ -54,7 +57,6 @@ export function AdminAttendancePage() {
       createManualAttendance({
         memberEmail: email,
         checkInAt: new Date(checkIn).toISOString(),
-        checkOutAt: checkOut ? new Date(checkOut).toISOString() : null,
       }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["attendance"] });
@@ -65,48 +67,39 @@ export function AdminAttendancePage() {
   });
 
   const columns = [
-    colHelper.accessor((r) => r.user.name, { 
-      id: "member", 
+    colHelper.accessor((r) => r.user.name, {
+      id: "member",
       header: "Member",
       cell: (ctx) => (
         <div className="flex flex-col">
           <span className="font-bold text-white">{ctx.getValue()}</span>
-          <span className="text-[10px] text-brand-muted font-mono">{ctx.row.original.user.email}</span>
+          <span className="text-[10px] text-brand-muted font-mono">
+            {ctx.row.original.user.email}
+          </span>
         </div>
-      )
+      ),
     }),
     colHelper.accessor("checkInAt", {
       header: "Check-in",
       cell: (c) => (
         <div className="flex items-center gap-2">
           <Clock className="w-3 h-3 text-brand-accent" />
-          <span className="font-mono text-xs">{new Date(c.getValue()).toLocaleString()}</span>
+          <span className="font-mono text-xs">
+            {new Date(c.getValue()).toLocaleString()}
+          </span>
         </div>
       ),
     }),
-    colHelper.accessor("checkOutAt", {
-      header: "Check-out",
-      cell: (c) => (
-        <div className="flex items-center gap-2">
-          {c.getValue() ? (
-            <>
-              <Clock className="w-3 h-3 text-brand-muted" />
-              <span className="font-mono text-xs">{new Date(c.getValue()!).toLocaleString()}</span>
-            </>
-          ) : (
-            <Badge variant="warning" className="text-[8px] px-1.5 py-0">Active Session</Badge>
-          )}
-        </div>
-      ),
-    }),
-    colHelper.accessor("source", { 
+    colHelper.accessor("source", {
       header: "Source",
       cell: (c) => (
         <div className="flex items-center gap-1.5">
           <Monitor className="w-3 h-3 text-brand-muted" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">{c.getValue()}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">
+            {c.getValue()}
+          </span>
         </div>
-      )
+      ),
     }),
   ];
 
@@ -147,13 +140,6 @@ export function AdminAttendancePage() {
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
             />
-            <Input
-              label="Check-out Time (Optional)"
-              type="datetime-local"
-              className="md:col-span-2"
-              value={checkOut}
-              onChange={(e) => setCheckOut(e.target.value)}
-            />
             <Button
               variant="primary"
               className="md:col-span-2 h-11"
@@ -184,13 +170,21 @@ export function AdminAttendancePage() {
             <tbody className="divide-y divide-white/5">
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-6 py-20 text-center text-brand-muted italic">
-                    {q.isLoading ? "Loading activity..." : "No attendance records found for this period."}
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-20 text-center text-brand-muted italic"
+                  >
+                    {q.isLoading
+                      ? "Loading activity..."
+                      : "No attendance records found for this period."}
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((r) => (
-                  <tr key={r.id} className="hover:bg-white/5 transition-colors group">
+                  <tr
+                    key={r.id}
+                    className="hover:bg-white/5 transition-colors group"
+                  >
                     {r.getVisibleCells().map((c) => (
                       <td key={c.id} className="px-6 py-4">
                         <div className="text-sm font-medium">
