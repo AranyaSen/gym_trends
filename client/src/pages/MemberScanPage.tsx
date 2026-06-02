@@ -36,7 +36,7 @@ function parseApiError(
   );
 }
 
-export function MemberScanPage() {
+function MemberScanPage() {
   const [pageState, setPageState] = useState<PageState>("idle");
   const [message, setMessage] = useState("");
   const positionPromiseRef = useRef<Promise<GeolocationPosition> | null>(null);
@@ -44,42 +44,45 @@ export function MemberScanPage() {
   const meQuery = useQuery({ queryKey: ["me"], queryFn: fetchMe });
   const geoRequired = meQuery.data?.gym?.geoFencingEnabled !== false;
 
-  const handleDetected = useCallback(async (rawValue: string) => {
-    setPageState("submitting");
-    setMessage("");
-    try {
-      let latitude: number | undefined;
-      let longitude: number | undefined;
-      if (geoRequired) {
-        const pos = await (positionPromiseRef.current ?? getPosition());
-        latitude = pos.coords.latitude;
-        longitude = pos.coords.longitude;
-      }
-      const result = (await scanAttendance({
-        token: rawValue.trim(),
-        latitude,
-        longitude,
-      })) as ScanResult;
+  const handleDetected = useCallback(
+    async (rawValue: string) => {
+      setPageState("submitting");
+      setMessage("");
+      try {
+        let latitude: number | undefined;
+        let longitude: number | undefined;
+        if (geoRequired) {
+          const pos = await (positionPromiseRef.current ?? getPosition());
+          latitude = pos.coords.latitude;
+          longitude = pos.coords.longitude;
+        }
+        const result = (await scanAttendance({
+          token: rawValue.trim(),
+          latitude,
+          longitude,
+        })) as ScanResult;
 
-      if (result.ignored) {
-        setMessage("Already recorded — duplicate scan ignored.");
-      } else {
-        setMessage("✓ Checked in successfully!");
+        if (result.ignored) {
+          setMessage("Already recorded — duplicate scan ignored.");
+        } else {
+          setMessage("✓ Checked in successfully!");
+        }
+        setPageState("success");
+      } catch (err) {
+        setMessage(
+          parseApiError(
+            err as Error & {
+              response?: { data?: { error?: { message?: string } } };
+            },
+          ),
+        );
+        setPageState("error");
+      } finally {
+        positionPromiseRef.current = null;
       }
-      setPageState("success");
-    } catch (err) {
-      setMessage(
-        parseApiError(
-          err as Error & {
-            response?: { data?: { error?: { message?: string } } };
-          },
-        ),
-      );
-      setPageState("error");
-    } finally {
-      positionPromiseRef.current = null;
-    }
-  }, [geoRequired]);
+    },
+    [geoRequired],
+  );
 
   const { cameraState, cameraError, startCamera, stopCamera } = useQrScanner({
     onDetected: handleDetected,
@@ -257,3 +260,5 @@ function ErrorIcon() {
 function CameraIcon() {
   return <Camera className="w-14 h-14 text-brand-accent/40 stroke-[1.5]" />;
 }
+
+export default MemberScanPage;

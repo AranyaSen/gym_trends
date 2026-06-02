@@ -15,7 +15,12 @@ import {
 import { Plus, ShieldAlert } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 
 const colHelper = createColumnHelper<PlanRow>();
@@ -24,7 +29,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { planSchema, type PlanFormValues } from "../../schemas/gym";
 
-export function AdminPlansPage() {
+function AdminPlansPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
   const [err, setErr] = useState<string | null>(null);
@@ -95,7 +100,7 @@ export function AdminPlansPage() {
             onClick={() => {
               if (
                 confirm(
-                  "Deactivate this plan? Existing memberships stay as-is."
+                  "Deactivate this plan? Existing memberships stay as-is.",
                 )
               ) {
                 deactM.mutate(ctx.row.original.id);
@@ -106,7 +111,9 @@ export function AdminPlansPage() {
             Retire
           </Button>
         ) : (
-          <span className="text-[10px] text-brand-muted uppercase font-bold italic">No actions</span>
+          <span className="text-[10px] text-brand-muted uppercase font-bold italic">
+            No actions
+          </span>
         ),
     }),
   ];
@@ -166,7 +173,9 @@ export function AdminPlansPage() {
               disabled={createM.isPending}
               className="w-full h-11"
             >
-              {createM.isPending ? "Creating..." : (
+              {createM.isPending ? (
+                "Creating..."
+              ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Plan
@@ -199,13 +208,21 @@ export function AdminPlansPage() {
             <tbody className="divide-y divide-white/5">
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-6 py-20 text-center text-brand-muted italic">
-                    {q.isLoading ? "Loading tiers..." : "No membership plans found."}
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-20 text-center text-brand-muted italic"
+                  >
+                    {q.isLoading
+                      ? "Loading tiers..."
+                      : "No membership plans found."}
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((r) => (
-                  <tr key={r.id} className="hover:bg-white/5 transition-colors group">
+                  <tr
+                    key={r.id}
+                    className="hover:bg-white/5 transition-colors group"
+                  >
                     {r.getVisibleCells().map((c) => (
                       <td key={c.id} className="px-6 py-4">
                         <div className="text-sm font-medium">
@@ -223,3 +240,5 @@ export function AdminPlansPage() {
     </div>
   );
 }
+
+export default AdminPlansPage;

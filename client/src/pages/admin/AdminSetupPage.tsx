@@ -19,7 +19,7 @@ import { gymSetupSchema, type GymSetupFormValues } from "../../schemas/gym";
 import { useTrackLocation } from "../../hooks/useTrackLocation";
 import { Loader2, MapPin, Map, ChevronRight, Check } from "lucide-react";
 
-export function AdminSetupPage() {
+function AdminSetupPage() {
   const nav = useNavigate();
   const q = useQuery({ queryKey: ["gym"], queryFn: fetchMyGym });
   const [err, setErr] = useState<string | null>(null);
@@ -120,8 +120,8 @@ export function AdminSetupPage() {
       {/* Map picker modal */}
       {showMap && (
         <GymLocationPicker
-          initialLat={lat !== 0 ? lat : (location?.latitude || 0)}
-          initialLng={lng !== 0 ? lng : (location?.longitude || 0)}
+          initialLat={lat !== 0 ? lat : location?.latitude || 0}
+          initialLng={lng !== 0 ? lng : location?.longitude || 0}
           onConfirm={(newLat, newLng) => {
             setValue("latitude", newLat, { shouldValidate: true });
             setValue("longitude", newLng, { shouldValidate: true });
@@ -299,3 +299,5 @@ export function AdminSetupPage() {
     </>
   );
 }
+
+export default AdminSetupPage;

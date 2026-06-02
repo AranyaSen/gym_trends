@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { updateGymSettings, fetchMyGym, type GymRecord } from "../../services/authApi";
+import {
+  updateGymSettings,
+  fetchMyGym,
+  type GymRecord,
+} from "../../services/authApi";
 import { useTrackLocation } from "../../hooks/useTrackLocation";
 import {
   Check,
@@ -65,7 +69,7 @@ function SettingsToggle({
   );
 }
 
-export function AdminPreferencesPage({ gym: propGym }: { gym?: GymRecord }) {
+function AdminPreferencesPage({ gym: propGym }: { gym?: GymRecord }) {
   const qc = useQueryClient();
   const gq = useQuery({
     queryKey: ["gym"],
@@ -328,3 +332,5 @@ export function AdminPreferencesPage({ gym: propGym }: { gym?: GymRecord }) {
     </>
   );
 }
+
+export default AdminPreferencesPage;

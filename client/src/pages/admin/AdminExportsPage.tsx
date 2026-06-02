@@ -4,18 +4,26 @@ import { downloadExport } from "../../services/adminApi";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { exportSchema, type ExportFormValues } from "../../schemas/gym";
-import { Download, FileSpreadsheet, Database, Users, Clock } from "lucide-react";
+import {
+  Download,
+  FileSpreadsheet,
+  Database,
+  Users,
+  Clock,
+} from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/Card";
 
-export function AdminExportsPage() {
+function AdminExportsPage() {
   const [err, setErr] = useState<string | null>(null);
 
-  const {
-    register,
-    getValues,
-  } = useForm<ExportFormValues>({
+  const { register, getValues } = useForm<ExportFormValues>({
     resolver: zodResolver(exportSchema),
     mode: "onChange",
     defaultValues: {
@@ -35,7 +43,7 @@ export function AdminExportsPage() {
   const run = (path: string, name: string) => {
     setErr(null);
     downloadExport(path, name, getParams()).catch(() =>
-      setErr("Export failed — check date range.")
+      setErr("Export failed — check date range."),
     );
   };
 
@@ -58,16 +66,8 @@ export function AdminExportsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            <Input
-              label="From Date"
-              type="date"
-              {...register("from")}
-            />
-            <Input
-              label="To Date"
-              type="date"
-              {...register("to")}
-            />
+            <Input label="From Date" type="date" {...register("from")} />
+            <Input label="To Date" type="date" {...register("to")} />
           </div>
           {err && (
             <p className="mt-4 text-xs font-bold text-red-400 uppercase tracking-wider text-center">
@@ -107,7 +107,17 @@ export function AdminExportsPage() {
   );
 }
 
-function ExportCard({ title, description, icon, onClick }: { title: string; description: string; icon: ReactNode; onClick: () => void }) {
+function ExportCard({
+  title,
+  description,
+  icon,
+  onClick,
+}: {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  onClick: () => void;
+}) {
   return (
     <div className="glass-card p-6 flex flex-col justify-between group hover:border-brand-accent/30 transition-all duration-300">
       <div className="space-y-4">
@@ -115,7 +125,9 @@ function ExportCard({ title, description, icon, onClick }: { title: string; desc
           {icon}
         </div>
         <div>
-          <h3 className="text-white font-black uppercase tracking-tight">{title}</h3>
+          <h3 className="text-white font-black uppercase tracking-tight">
+            {title}
+          </h3>
           <p className="text-[10px] text-brand-muted mt-1 leading-relaxed">
             {description}
           </p>
@@ -131,5 +143,7 @@ function ExportCard({ title, description, icon, onClick }: { title: string; desc
         Download CSV
       </Button>
     </div>
-);
+  );
 }
+
+export default AdminExportsPage;

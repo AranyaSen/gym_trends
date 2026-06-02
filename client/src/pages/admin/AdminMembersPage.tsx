@@ -21,21 +21,40 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { UserPlus, RefreshCw, TrendingUp, TrendingDown, Calendar, CheckCircle, XCircle } from "lucide-react";
+import {
+  UserPlus,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
-import { membershipAssignSchema, type MembershipAssignFormValues } from "../../schemas/gym";
+import {
+  membershipAssignSchema,
+  type MembershipAssignFormValues,
+} from "../../schemas/gym";
 
 const colHelper = createColumnHelper<MemberRow>();
 
-export function AdminMembersPage() {
+function AdminMembersPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["members"], queryFn: () => fetchMembers() });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
-  const reqsQ = useQuery({ queryKey: ["planRequests"], queryFn: fetchPlanRequests });
+  const reqsQ = useQuery({
+    queryKey: ["planRequests"],
+    queryFn: fetchPlanRequests,
+  });
   const [msg, setMsg] = useState<string | null>(null);
 
   const {
@@ -53,7 +72,7 @@ export function AdminMembersPage() {
   });
 
   const assignM = useMutation({
-    mutationFn: (values: MembershipAssignFormValues) => 
+    mutationFn: (values: MembershipAssignFormValues) =>
       assignMembership({ memberEmail: values.email, planId: values.planId }),
     onSuccess: () => {
       setMsg("Membership assigned");
@@ -63,7 +82,7 @@ export function AdminMembersPage() {
   });
 
   const renewM = useMutation({
-    mutationFn: (values: MembershipAssignFormValues) => 
+    mutationFn: (values: MembershipAssignFormValues) =>
       renewMembership({ memberEmail: values.email, planId: values.planId }),
     onSuccess: () => {
       setMsg("Renewed");
@@ -73,8 +92,18 @@ export function AdminMembersPage() {
   });
 
   const switchM = useMutation({
-    mutationFn: ({ values, changeType }: { values: MembershipAssignFormValues; changeType: "UPGRADE" | "DOWNGRADE" }) =>
-      switchMembership({ memberEmail: values.email, planId: values.planId, changeType }),
+    mutationFn: ({
+      values,
+      changeType,
+    }: {
+      values: MembershipAssignFormValues;
+      changeType: "UPGRADE" | "DOWNGRADE";
+    }) =>
+      switchMembership({
+        memberEmail: values.email,
+        planId: values.planId,
+        changeType,
+      }),
     onSuccess: () => {
       setMsg("Plan changed");
       void qc.invalidateQueries({ queryKey: ["members"] });
@@ -122,9 +151,9 @@ export function AdminMembersPage() {
       cell: (ctx) => {
         const m = ctx.row.original.memberships[0];
         if (!m) return <Badge variant="neutral">No Active Plan</Badge>;
-        
+
         const isExpired = new Date(m.endDate) < new Date();
-        
+
         return (
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
@@ -169,16 +198,28 @@ export function AdminMembersPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {reqsQ.data.map((req: any) => (
-              <div key={req.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg gap-4">
+              <div
+                key={req.id}
+                className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg gap-4"
+              >
                 <div>
-                  <p className="text-white font-bold">{req.user.name} <span className="text-brand-muted font-normal">({req.user.email})</span></p>
+                  <p className="text-white font-bold">
+                    {req.user.name}{" "}
+                    <span className="text-brand-muted font-normal">
+                      ({req.user.email})
+                    </span>
+                  </p>
                   <p className="text-sm text-brand-muted mt-1">
-                    Requested Plan: <span className="text-brand-accent font-bold">{req.plan.name}</span> - ₹{(req.plan.priceCents / 100).toFixed(0)}
+                    Requested Plan:{" "}
+                    <span className="text-brand-accent font-bold">
+                      {req.plan.name}
+                    </span>{" "}
+                    - ₹{(req.plan.priceCents / 100).toFixed(0)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="primary"
                     disabled={approveM.isPending}
                     onClick={() => approveM.mutate(req.id)}
@@ -186,8 +227,8 @@ export function AdminMembersPage() {
                   >
                     <CheckCircle className="w-4 h-4 mr-2" /> Approve
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     disabled={rejectM.isPending}
                     onClick={() => rejectM.mutate(req.id)}
@@ -216,21 +257,19 @@ export function AdminMembersPage() {
                 placeholder="search@member.com"
                 {...register("email")}
               />
-              <Select
-                label="Select Plan"
-                {...register("planId")}
-              >
+              <Select label="Select Plan" {...register("planId")}>
                 <option value="">Choose a plan...</option>
                 {(plansQ.data ?? [])
                   .filter((p: any) => p.isActive)
                   .map((p: any) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} — ₹{(p.priceCents / 100).toFixed(0)} / {p.durationDays}d
+                      {p.name} — ₹{(p.priceCents / 100).toFixed(0)} /{" "}
+                      {p.durationDays}d
                     </option>
                   ))}
               </Select>
             </div>
-            
+
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="primary"
@@ -247,7 +286,9 @@ export function AdminMembersPage() {
                 disabled={!isValid || renewM.isPending}
                 className="flex-1 min-w-[140px]"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${renewM.isPending ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-4 h-4 mr-2 ${renewM.isPending ? "animate-spin" : ""}`}
+                />
                 Renew
               </Button>
               <Button
@@ -295,13 +336,19 @@ export function AdminMembersPage() {
             <tbody className="divide-y divide-white/5">
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-6 py-20 text-center text-brand-muted italic">
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-20 text-center text-brand-muted italic"
+                  >
                     {q.isLoading ? "Fetching members..." : "No members found."}
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((r) => (
-                  <tr key={r.id} className="hover:bg-white/5 transition-colors group">
+                  <tr
+                    key={r.id}
+                    className="hover:bg-white/5 transition-colors group"
+                  >
                     {r.getVisibleCells().map((c) => (
                       <td key={c.id} className="px-6 py-4">
                         <div className="text-sm font-medium">
@@ -319,3 +366,5 @@ export function AdminMembersPage() {
     </div>
   );
 }
+
+export default AdminMembersPage;

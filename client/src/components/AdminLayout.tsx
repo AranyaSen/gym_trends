@@ -15,7 +15,7 @@ const links: { to: string; label: string }[] = [
   { to: ROUTES.adminQr, label: "QR" },
 ];
 
-export function AdminLayout() {
+function AdminLayout() {
   const { logout } = useAuth();
   const nav = useNavigate();
   const location = useLocation();
@@ -105,3 +105,5 @@ export function AdminLayout() {
     </div>
   );
 }
+
+export default AdminLayout;

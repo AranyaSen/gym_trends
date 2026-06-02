@@ -20,7 +20,7 @@ type Row = {
 
 const colHelper = createColumnHelper<Row>();
 
-export function AdminAuditPage() {
+function AdminAuditPage() {
   const q = useQuery({
     queryKey: ["audit"],
     queryFn: () => fetchAuditLogs({ take: "100", skip: "0" }),
@@ -32,43 +32,49 @@ export function AdminAuditPage() {
       cell: (c) => (
         <div className="flex items-center gap-2">
           <Clock className="w-3 h-3 text-brand-muted" />
-          <span className="font-mono text-[10px]">{new Date(c.getValue()).toLocaleString()}</span>
+          <span className="font-mono text-[10px]">
+            {new Date(c.getValue()).toLocaleString()}
+          </span>
         </div>
       ),
     }),
-    colHelper.accessor("action", { 
+    colHelper.accessor("action", {
       header: "Action",
       cell: (c) => (
         <Badge variant="info" className="text-[9px] px-2">
           {c.getValue()}
         </Badge>
-      )
+      ),
     }),
-    colHelper.accessor("entityType", { 
+    colHelper.accessor("entityType", {
       header: "Entity",
       cell: (c) => (
         <div className="flex items-center gap-2">
           <Fingerprint className="w-3 h-3 text-brand-accent/40" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white">{c.getValue()}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+            {c.getValue()}
+          </span>
         </div>
-      )
+      ),
     }),
-    colHelper.accessor("entityId", { 
+    colHelper.accessor("entityId", {
       header: "Resource ID",
       cell: (c) => (
         <span className="font-mono text-[10px] text-brand-muted">
           {c.getValue() || "N/A"}
         </span>
-      )
+      ),
     }),
-    colHelper.accessor("adminUserId", { 
+    colHelper.accessor("adminUserId", {
       header: "Operator",
       cell: (c) => (
         <div className="flex items-center gap-2">
           <User className="w-3 h-3 text-brand-muted" />
-          <span className="text-xs font-medium text-slate-300">{c.getValue()}</span>
+          <span className="text-xs font-medium text-slate-300">
+            {c.getValue()}
+          </span>
         </div>
-      )
+      ),
     }),
   ];
 
@@ -89,7 +95,9 @@ export function AdminAuditPage() {
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-accent/5 border border-brand-accent/10">
           <ShieldCheck className="w-4 h-4 text-brand-accent" />
-          <span className="text-[10px] font-bold text-brand-accent uppercase tracking-widest">Secured</span>
+          <span className="text-[10px] font-bold text-brand-accent uppercase tracking-widest">
+            Secured
+          </span>
         </div>
       </header>
 
@@ -110,13 +118,21 @@ export function AdminAuditPage() {
             <tbody className="divide-y divide-white/5">
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-6 py-20 text-center text-brand-muted italic">
-                    {q.isLoading ? "Loading secure logs..." : "No administrative actions recorded yet."}
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-20 text-center text-brand-muted italic"
+                  >
+                    {q.isLoading
+                      ? "Loading secure logs..."
+                      : "No administrative actions recorded yet."}
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((r) => (
-                  <tr key={r.id} className="hover:bg-brand-accent/5 transition-colors group">
+                  <tr
+                    key={r.id}
+                    className="hover:bg-brand-accent/5 transition-colors group"
+                  >
                     {r.getVisibleCells().map((c) => (
                       <td key={c.id} className="px-6 py-4">
                         <div className="text-sm">
@@ -134,3 +150,5 @@ export function AdminAuditPage() {
     </div>
   );
 }
+
+export default AdminAuditPage;

@@ -7,7 +7,7 @@ import { mintQrToken } from "../../services/authApi";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 
-export function AdminQrPage() {
+function AdminQrPage() {
   const [entry, setEntry] = useState<{
     token: string;
     expiresAt: string;
@@ -88,3 +88,5 @@ export function AdminQrPage() {
     </div>
   );
 }
+
+export default AdminQrPage;

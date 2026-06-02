@@ -12,7 +12,7 @@ import {
 } from "../../components/ui/Card";
 import { useToast } from "../../components/ui/Toast";
 
-export function AdminDashboardPage() {
+function AdminDashboardPage() {
   const nav = useNavigate();
   const toast = useToast();
   const gq = useQuery({ queryKey: ["gym"], queryFn: fetchMyGym });
@@ -207,3 +207,5 @@ function Stat({
     </div>
   );
 }
+
+export default AdminDashboardPage;

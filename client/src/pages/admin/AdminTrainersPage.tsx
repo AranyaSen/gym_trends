@@ -9,14 +9,22 @@ import {
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { trainerLinkSchema, type TrainerLinkFormValues } from "../../schemas/gym";
+import {
+  trainerLinkSchema,
+  type TrainerLinkFormValues,
+} from "../../schemas/gym";
 import { Link2, Unlink, Mail, ShieldCheck } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Select } from "../../components/ui/Select";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 
-export function AdminTrainersPage() {
+function AdminTrainersPage() {
   const qc = useQueryClient();
   const tq = useQuery({ queryKey: ["trainers"], queryFn: fetchTrainers });
   const mq = useQuery({ queryKey: ["members"], queryFn: () => fetchMembers() });
@@ -52,8 +60,7 @@ export function AdminTrainersPage() {
   };
 
   const unlinkM = useMutation({
-    mutationFn: (p: { t: string; m: string }) =>
-      unlinkTrainerMember(p.t, p.m),
+    mutationFn: (p: { t: string; m: string }) => unlinkTrainerMember(p.t, p.m),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["trainers"] }),
   });
 
@@ -79,10 +86,7 @@ export function AdminTrainersPage() {
             className="grid gap-4 md:grid-cols-3 items-end"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <Select
-              label="Select Trainer"
-              {...register("trainerId")}
-            >
+            <Select label="Select Trainer" {...register("trainerId")}>
               <option value="">Choose Trainer...</option>
               {(tq.data ?? []).map((t) => (
                 <option key={t.id} value={t.id}>
@@ -90,10 +94,7 @@ export function AdminTrainersPage() {
                 </option>
               ))}
             </Select>
-            <Select
-              label="Select Member"
-              {...register("memberId")}
-            >
+            <Select label="Select Member" {...register("memberId")}>
               <option value="">Choose Member...</option>
               {(mq.data?.items ?? []).map((m) => (
                 <option key={m.id} value={m.id}>
@@ -129,16 +130,21 @@ export function AdminTrainersPage() {
           </p>
         ) : (
           (tq.data ?? []).map((t) => (
-            <div key={t.id} className="glass-card p-5 group hover:border-brand-accent/30 transition-all duration-300">
+            <div
+              key={t.id}
+              className="glass-card p-5 group hover:border-brand-accent/30 transition-all duration-300"
+            >
               <div className="flex justify-between items-start mb-4">
                 <div className="w-10 h-10 rounded-xl bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center text-brand-accent">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <Badge variant="info">Verified</Badge>
               </div>
-              
+
               <div className="space-y-1 mb-6">
-                <h3 className="text-white font-black uppercase tracking-tight">{t.name}</h3>
+                <h3 className="text-white font-black uppercase tracking-tight">
+                  {t.name}
+                </h3>
                 <div className="flex items-center gap-2 text-[10px] text-brand-muted font-bold tracking-wider">
                   <Mail className="w-3 h-3" />
                   {t.email}
@@ -166,3 +172,5 @@ export function AdminTrainersPage() {
     </div>
   );
 }
+
+export default AdminTrainersPage;

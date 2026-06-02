@@ -29,7 +29,7 @@ type Row = {
 
 const colHelper = createColumnHelper<Row>();
 
-export function AdminAttendancePage() {
+function AdminAttendancePage() {
   const qc = useQueryClient();
   const range = useMemo(() => {
     const to = new Date();
@@ -50,7 +50,6 @@ export function AdminAttendancePage() {
 
   const [email, setEmail] = useState("");
   const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
 
   const manualM = useMutation({
     mutationFn: () =>
@@ -62,7 +61,6 @@ export function AdminAttendancePage() {
       void qc.invalidateQueries({ queryKey: ["attendance"] });
       setEmail("");
       setCheckIn("");
-      setCheckOut("");
     },
   });
 
@@ -202,3 +200,5 @@ export function AdminAttendancePage() {
     </div>
   );
 }
+
+export default AdminAttendancePage;
