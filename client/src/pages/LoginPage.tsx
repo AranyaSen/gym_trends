@@ -16,9 +16,9 @@ import { Input } from "../components/ui/Input";
 import { loginSchema, type LoginFormValues } from "../schemas/auth";
 
 function homeForRole(role: string) {
-  if (role === "ADMIN") return ROUTES.admin;
-  if (role === "TRAINER") return ROUTES.trainer;
-  return ROUTES.member;
+  if (role === "ADMIN") return ROUTES.ADMIN;
+  if (role === "TRAINER") return ROUTES.TRAINER;
+  return ROUTES.MEMBER;
 }
 
 export function LoginPage() {
@@ -82,7 +82,7 @@ export function LoginPage() {
       <div className="w-full max-w-md space-y-8 relative z-10">
         <header className="text-center space-y-2">
           <Link
-            to={ROUTES.home}
+            to={ROUTES.HOME}
             className="inline-block transition-transform hover:scale-105"
           >
             <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
@@ -143,7 +143,7 @@ export function LoginPage() {
         <footer className="text-center">
           <Link
             className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
-            to={ROUTES.home}
+            to={ROUTES.HOME}
           >
             ← Back to Home
           </Link>

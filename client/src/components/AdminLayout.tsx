@@ -5,14 +5,14 @@ import { Button } from "./ui/Button";
 import { Settings } from "lucide-react";
 
 const links: { to: string; label: string }[] = [
-  { to: ROUTES.admin, label: "Overview" },
-  { to: ROUTES.adminPlans, label: "Plans" },
-  { to: ROUTES.adminMembers, label: "Members" },
-  { to: ROUTES.adminTrainers, label: "Trainers" },
-  { to: ROUTES.adminAttendance, label: "Attendance" },
-  { to: ROUTES.adminExports, label: "Exports" },
-  { to: ROUTES.adminAudit, label: "Audit" },
-  { to: ROUTES.adminQr, label: "QR" },
+  { to: ROUTES.ADMIN, label: "Overview" },
+  { to: ROUTES.ADMIN_PLANS, label: "Plans" },
+  { to: ROUTES.ADMIN_MEMBERS, label: "Members" },
+  { to: ROUTES.ADMIN_TRAINERS, label: "Trainers" },
+  { to: ROUTES.ADMIN_ATTENDANCE, label: "Attendance" },
+  { to: ROUTES.ADMIN_EXPORTS, label: "Exports" },
+  { to: ROUTES.ADMIN_AUDIT, label: "Audit" },
+  { to: ROUTES.ADMIN_QR, label: "QR" },
 ];
 
 function AdminLayout() {
@@ -30,7 +30,7 @@ function AdminLayout() {
       <header className="sticky top-0 z-50 glass border-b border-brand-border/30 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to={ROUTES.admin} className="group">
+            <Link to={ROUTES.ADMIN} className="group">
               <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50 group-hover:to-brand-accent transition-all duration-300">
                 GYM TRAC
               </h1>
@@ -60,12 +60,12 @@ function AdminLayout() {
             <div
               className="flex items-center cursor-pointer"
               onClick={() => {
-                nav(ROUTES.adminPreferences);
+                nav(ROUTES.ADMIN_PREFERENCES);
               }}
             >
               <Settings
                 className={`w-5 h-5 transition-colors ${
-                  location.pathname === ROUTES.adminPreferences
+                  location.pathname === ROUTES.ADMIN_PREFERENCES
                     ? "text-brand-accent"
                     : "text-brand-muted hover:text-brand-accent"
                 }`}
@@ -77,7 +77,7 @@ function AdminLayout() {
               className="text-[10px] h-8 flex justify-end"
               onClick={() => {
                 logout();
-                nav(ROUTES.home);
+                nav(ROUTES.HOME);
               }}
             >
               Sign Out

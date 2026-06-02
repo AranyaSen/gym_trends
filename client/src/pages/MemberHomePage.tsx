@@ -153,7 +153,7 @@ function MemberHomePage() {
                 Your membership is active. Scan the QR code at the gym entrance
                 to log your session.
               </p>
-              <Link to={ROUTES.memberScan} className="block">
+              <Link to={ROUTES.MEMBER_SCAN} className="block">
                 <Button size="lg" className="w-full h-14 text-lg">
                   Scan Attendance
                 </Button>

@@ -5,13 +5,21 @@ import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
 import { registerJoin } from "../services/authApi";
 import { Button } from "../components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { joinRegisterSchema, type JoinRegisterFormValues } from "../schemas/auth";
+import {
+  joinRegisterSchema,
+  type JoinRegisterFormValues,
+} from "../schemas/auth";
 
 export function JoinRegisterPage() {
   const nav = useNavigate();
@@ -42,7 +50,7 @@ export function JoinRegisterPage() {
     mutationFn: (values: JoinRegisterFormValues) => registerJoin(values),
     onSuccess: (d) => {
       setToken(d.token);
-      nav(selectedRole === "TRAINER" ? ROUTES.trainer : ROUTES.member, {
+      nav(selectedRole === "TRAINER" ? ROUTES.TRAINER : ROUTES.MEMBER, {
         replace: true,
       });
     },
@@ -51,7 +59,7 @@ export function JoinRegisterPage() {
         e && typeof e === "object" && "response" in e
           ? String(
               (e as { response?: { data?: { error?: { message?: string } } } })
-                .response?.data?.error?.message
+                .response?.data?.error?.message,
             )
           : "Registration failed";
       setErr(msg || "Registration failed");
@@ -70,7 +78,10 @@ export function JoinRegisterPage() {
 
       <div className="w-full max-w-md space-y-8 relative z-10">
         <header className="text-center space-y-2">
-          <Link to={ROUTES.home} className="inline-block transition-transform hover:scale-105">
+          <Link
+            to={ROUTES.HOME}
+            className="inline-block transition-transform hover:scale-105"
+          >
             <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
               GYM-TRAC
             </h1>
@@ -88,10 +99,7 @@ export function JoinRegisterPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={handleSubmit(onSubmit)}
-            >
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <Input
                 label="Join Code"
                 placeholder="GYM-XXXX"
@@ -156,9 +164,9 @@ export function JoinRegisterPage() {
         </Card>
 
         <footer className="text-center">
-          <Link 
-            className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors" 
-            to={ROUTES.home}
+          <Link
+            className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
+            to={ROUTES.HOME}
           >
             ← Back to Home
           </Link>

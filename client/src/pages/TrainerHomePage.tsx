@@ -29,7 +29,7 @@ function TrainerHomePage() {
               Command Center & Member Management
             </p>
           </div>
-          <Link to={ROUTES.memberScan}>
+          <Link to={ROUTES.MEMBER_SCAN}>
             <Button size="lg" className="h-12 px-8">
               Scan Attendance
             </Button>

@@ -44,7 +44,7 @@ export function AdminRegisterPage() {
     mutationFn: (values: AdminRegisterFormValues) => registerAdmin(values),
     onSuccess: (d) => {
       setToken(d.token);
-      nav(ROUTES.adminSetup, { replace: true });
+      nav(ROUTES.ADMIN_SETUP, { replace: true });
     },
     onError: (e: unknown) => {
       const msg =
@@ -71,7 +71,7 @@ export function AdminRegisterPage() {
       <div className="w-full max-w-md space-y-8 relative z-10">
         <header className="text-center space-y-2">
           <Link
-            to={ROUTES.home}
+            to={ROUTES.HOME}
             className="inline-block transition-transform hover:scale-105"
           >
             <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
@@ -142,7 +142,7 @@ export function AdminRegisterPage() {
         <footer className="text-center">
           <Link
             className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
-            to={ROUTES.home}
+            to={ROUTES.HOME}
           >
             ← Back to Home
           </Link>

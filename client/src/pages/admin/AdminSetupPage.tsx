@@ -65,7 +65,7 @@ function AdminSetupPage() {
         gracePeriodDays: Number(values.gracePeriodDays),
         onlinePaymentsEnabled: values.onlinePaymentsEnabled || false,
       }),
-    onSuccess: () => nav(ROUTES.admin, { replace: true }),
+    onSuccess: () => nav(ROUTES.ADMIN, { replace: true }),
     onError: (e: unknown) => {
       const msg =
         e && typeof e === "object" && "response" in e
@@ -82,7 +82,7 @@ function AdminSetupPage() {
 
   useEffect(() => {
     if (gym?.setupCompleted) {
-      nav(ROUTES.admin, { replace: true });
+      nav(ROUTES.ADMIN, { replace: true });
     }
   }, [gym?.setupCompleted, nav]);
 
@@ -137,7 +137,7 @@ function AdminSetupPage() {
         <div className="w-full max-w-md space-y-8 relative z-10">
           <header className="text-center space-y-2">
             <Link
-              to={ROUTES.home}
+              to={ROUTES.HOME}
               className="inline-block transition-transform hover:scale-105"
             >
               <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">

@@ -79,7 +79,7 @@ function AdminQrPage() {
         <footer className="text-center pt-6">
           <Link
             className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
-            to={ROUTES.admin}
+            to={ROUTES.ADMIN}
           >
             ← Back to Dashboard
           </Link>

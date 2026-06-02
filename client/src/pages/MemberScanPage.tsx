@@ -181,7 +181,7 @@ function MemberScanPage() {
         <footer className="text-center pt-2">
           <Link
             className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
-            to={ROUTES.member}
+            to={ROUTES.MEMBER}
             onClick={stopCamera}
           >
             ← Back

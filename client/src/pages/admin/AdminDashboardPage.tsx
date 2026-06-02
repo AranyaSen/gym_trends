@@ -21,7 +21,7 @@ function AdminDashboardPage() {
   useEffect(() => {
     const gym = gq.data as { setupCompleted?: boolean } | undefined;
     if (gym && !gym.setupCompleted) {
-      nav(ROUTES.adminSetup, { replace: true });
+      nav(ROUTES.ADMIN_SETUP, { replace: true });
     }
   }, [gq.data, nav]);
 
@@ -145,7 +145,7 @@ function AdminDashboardPage() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link to={ROUTES.adminMembers} className="block group">
+              <Link to={ROUTES.ADMIN_MEMBERS} className="block group">
                 <div className="p-4 rounded-xl border border-brand-border/30 bg-brand-bg/50 hover:bg-brand-accent/5 hover:border-brand-accent/30 transition-all flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-widest group-hover:text-brand-accent">
                     Manage Members
@@ -155,7 +155,7 @@ function AdminDashboardPage() {
                   </span>
                 </div>
               </Link>
-              <Link to={ROUTES.adminAttendance} className="block group">
+              <Link to={ROUTES.ADMIN_PREFERENCES} className="block group">
                 <div className="p-4 rounded-xl border border-brand-border/30 bg-brand-bg/50 hover:bg-brand-accent/5 hover:border-brand-accent/30 transition-all flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-widest group-hover:text-brand-accent">
                     View Logs

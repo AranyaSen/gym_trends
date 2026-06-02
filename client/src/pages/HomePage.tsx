@@ -14,23 +14,28 @@ export function HomePage() {
             The Future of Gym Management
           </div>
           <div className="flex justify-center mb-6">
-            <img src="/logo.png" alt="GYM-TRAC" className="w-24 h-24 object-contain animate-pulse-slow" />
+            <img
+              src="/logo.png"
+              alt="GYM-TRAC"
+              className="w-24 h-24 object-contain animate-pulse-slow"
+            />
           </div>
           <h1 className="text-5xl md:text-7xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50 leading-tight">
             GYM-TRAC
           </h1>
           <p className="text-lg md:text-xl text-brand-muted max-w-lg mx-auto leading-relaxed">
-            Multi-tenant gym membership, QR attendance, and automated payments built for performance.
+            Multi-tenant gym membership, QR attendance, and automated payments
+            built for performance.
           </p>
         </header>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link to={ROUTES.adminRegister}>
+          <Link to={ROUTES.ADMIN_REGISTER}>
             <Button size="lg" className="w-56">
               Register a gym (admin)
             </Button>
           </Link>
-          <Link to={ROUTES.register}>
+          <Link to={ROUTES.REGISTER}>
             <Button variant="outline" size="lg" className="w-56">
               Join with gym code
             </Button>
@@ -40,7 +45,7 @@ export function HomePage() {
         <footer className="pt-10">
           <Link
             className="text-sm font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
-            to={ROUTES.login}
+            to={ROUTES.LOGIN}
           >
             Already a member? Log in
           </Link>
@@ -49,4 +54,3 @@ export function HomePage() {
     </div>
   );
 }
-
