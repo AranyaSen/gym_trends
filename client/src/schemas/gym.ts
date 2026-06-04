@@ -20,21 +20,6 @@ export const gymSetupSchema = z.object({
 
 export type GymSetupFormValues = z.infer<typeof gymSetupSchema>;
 
-export const planSchema = z.object({
-  name: z.string().min(2, "Plan name is required"),
-  price: z
-    .string()
-    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, "Invalid price"),
-  days: z
-    .string()
-    .refine(
-      (val) => !isNaN(Number(val)) && Number(val) > 0,
-      "Invalid duration",
-    ),
-});
-
-export type PlanFormValues = z.infer<typeof planSchema>;
-
 export const trainerLinkSchema = z.object({
   trainerId: z.string().min(1, "Trainer is required"),
   memberId: z.string().min(1, "Member is required"),

@@ -34,7 +34,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        "inline-flex items-center justify-center rounded-lg font-bold uppercase tracking-wider transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none",
+        "inline-flex items-center justify-center rounded-lg font-bold uppercase tracking-wider transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed",
         variants[variant],
         sizes[size],
         className,

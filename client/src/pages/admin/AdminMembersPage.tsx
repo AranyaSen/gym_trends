@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +7,6 @@ import {
   fetchMembers,
   fetchPlans,
   renewMembership,
-  switchMembership,
 } from "../../services/admin/admin.services";
 import type { MemberRow } from "../../services/admin/admin.types";
 import {
@@ -17,15 +16,12 @@ import {
 } from "../../services/planRequest/planRequest.services";
 import {
   createColumnHelper,
-  flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import {
   UserPlus,
   RefreshCw,
-  TrendingUp,
-  TrendingDown,
   Calendar,
   CheckCircle,
   XCircle,
@@ -44,14 +40,19 @@ import {
   membershipAssignSchema,
   type MembershipAssignFormValues,
 } from "../../schemas/gym";
-
-const colHelper = createColumnHelper<MemberRow>();
+import { queryClient } from "../../query/queryClient";
+import { Table } from "../../components/ui/Table";
 
 function AdminMembersPage() {
-  const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["members"], queryFn: () => fetchMembers() });
-  const plansQ = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
-  const reqsQ = useQuery({
+  const { data: membersData, isLoading: membersLoading } = useQuery({
+    queryKey: ["members"],
+    queryFn: () => fetchMembers(),
+  });
+  const { data: plansData } = useQuery({
+    queryKey: ["plans"],
+    queryFn: fetchPlans,
+  });
+  const { data: reqsData } = useQuery({
     queryKey: ["planRequests"],
     queryFn: fetchPlanRequests,
   });
@@ -60,7 +61,6 @@ function AdminMembersPage() {
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { isValid },
   } = useForm<MembershipAssignFormValues>({
     resolver: zodResolver(membershipAssignSchema),
@@ -71,76 +71,52 @@ function AdminMembersPage() {
     },
   });
 
-  const assignM = useMutation({
+  const assignPlanMutation = useMutation({
     mutationFn: (values: MembershipAssignFormValues) =>
       assignMembership({ memberEmail: values.email, planId: values.planId }),
     onSuccess: () => {
       setMsg("Membership assigned");
-      void qc.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
     onError: () => setMsg("Assign failed"),
   });
 
-  const renewM = useMutation({
+  const renewPlanMutation = useMutation({
     mutationFn: (values: MembershipAssignFormValues) =>
       renewMembership({ memberEmail: values.email, planId: values.planId }),
     onSuccess: () => {
       setMsg("Renewed");
-      void qc.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
     onError: () => setMsg("Renew failed"),
   });
 
-  const switchM = useMutation({
-    mutationFn: ({
-      values,
-      changeType,
-    }: {
-      values: MembershipAssignFormValues;
-      changeType: "UPGRADE" | "DOWNGRADE";
-    }) =>
-      switchMembership({
-        memberEmail: values.email,
-        planId: values.planId,
-        changeType,
-      }),
-    onSuccess: () => {
-      setMsg("Plan changed");
-      void qc.invalidateQueries({ queryKey: ["members"] });
-    },
-    onError: () => setMsg("Switch failed"),
-  });
-
-  const approveM = useMutation({
+  const approvePlanRequestMutation = useMutation({
     mutationFn: approvePlanRequest,
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["planRequests"] });
-      void qc.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: ["planRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 
-  const rejectM = useMutation({
+  const rejectPlanRequestMutation = useMutation({
     mutationFn: rejectPlanRequest,
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["planRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["planRequests"] });
     },
   });
 
   const onAssign = (values: MembershipAssignFormValues) => {
     setMsg(null);
-    assignM.mutate(values);
+    assignPlanMutation.mutate(values);
   };
 
   const onRenew = (values: MembershipAssignFormValues) => {
     setMsg(null);
-    renewM.mutate(values);
+    renewPlanMutation.mutate(values);
   };
 
-  const onSwitch = (changeType: "UPGRADE" | "DOWNGRADE") => {
-    const values = getValues();
-    setMsg(null);
-    switchM.mutate({ values, changeType });
-  };
+  const colHelper = createColumnHelper<MemberRow>();
 
   const columns = [
     colHelper.accessor("name", { header: "Name" }),
@@ -173,7 +149,7 @@ function AdminMembersPage() {
   ];
 
   const table = useReactTable({
-    data: q.data?.items ?? [],
+    data: membersData?.items ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -189,15 +165,15 @@ function AdminMembersPage() {
         </div>
       </header>
 
-      {reqsQ.data && reqsQ.data.length > 0 && (
+      {reqsData && reqsData.length > 0 && (
         <Card className="neon-border border-yellow-500/20">
           <CardHeader>
             <CardTitle className="text-sm uppercase tracking-widest text-yellow-500 flex items-center gap-2">
-              Pending Plan Requests ({reqsQ.data.length})
+              Pending Plan Requests ({reqsData.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {reqsQ.data.map((req: any) => (
+            {reqsData.map((req: any) => (
               <div
                 key={req.id}
                 className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg gap-4"
@@ -221,8 +197,8 @@ function AdminMembersPage() {
                   <Button
                     size="sm"
                     variant="primary"
-                    disabled={approveM.isPending}
-                    onClick={() => approveM.mutate(req.id)}
+                    disabled={approvePlanRequestMutation.isPending}
+                    onClick={() => approvePlanRequestMutation.mutate(req.id)}
                     className="w-full md:w-auto"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" /> Approve
@@ -230,8 +206,8 @@ function AdminMembersPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled={rejectM.isPending}
-                    onClick={() => rejectM.mutate(req.id)}
+                    disabled={rejectPlanRequestMutation.isPending}
+                    onClick={() => rejectPlanRequestMutation.mutate(req.id)}
                     className="w-full md:w-auto text-red-400 hover:text-red-300"
                   >
                     <XCircle className="w-4 h-4 mr-2" /> Reject
@@ -259,7 +235,7 @@ function AdminMembersPage() {
               />
               <Select label="Select Plan" {...register("planId")}>
                 <option value="">Choose a plan...</option>
-                {(plansQ.data ?? [])
+                {(plansData ?? [])
                   .filter((p: any) => p.isActive)
                   .map((p: any) => (
                     <option key={p.id} value={p.id}>
@@ -274,40 +250,22 @@ function AdminMembersPage() {
               <Button
                 variant="primary"
                 onClick={handleSubmit(onAssign)}
-                disabled={!isValid || assignM.isPending}
+                disabled={!isValid || assignPlanMutation.isPending}
                 className="flex-1 min-w-[140px]"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                {assignM.isPending ? "Assigning..." : "Assign Plan"}
+                {assignPlanMutation.isPending ? "Assigning..." : "Assign Plan"}
               </Button>
               <Button
                 variant="outline"
                 onClick={handleSubmit(onRenew)}
-                disabled={!isValid || renewM.isPending}
+                disabled={!isValid || renewPlanMutation.isPending || true}
                 className="flex-1 min-w-[140px]"
               >
                 <RefreshCw
-                  className={`w-4 h-4 mr-2 ${renewM.isPending ? "animate-spin" : ""}`}
+                  className={`w-4 h-4 mr-2 ${renewPlanMutation.isPending ? "animate-spin" : ""}`}
                 />
                 Renew
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handleSubmit(() => onSwitch("UPGRADE"))}
-                disabled={!isValid || switchM.isPending}
-                className="flex-1 min-w-[140px] text-emerald-400 border-emerald-500/20"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Upgrade
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handleSubmit(() => onSwitch("DOWNGRADE"))}
-                disabled={!isValid || switchM.isPending}
-                className="flex-1 min-w-[140px] text-amber-400 border-amber-500/20"
-              >
-                <TrendingDown className="w-4 h-4 mr-2" />
-                Downgrade
               </Button>
             </div>
           </form>
@@ -321,46 +279,7 @@ function AdminMembersPage() {
 
       <div className="glass-card overflow-hidden border-brand-border/20 shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm text-slate-200">
-            <thead className="bg-white/5 text-[10px] uppercase font-black tracking-widest text-brand-muted border-b border-brand-border/20">
-              {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id}>
-                  {hg.headers.map((h) => (
-                    <th key={h.id} className="px-6 py-4">
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-6 py-20 text-center text-brand-muted italic"
-                  >
-                    {q.isLoading ? "Fetching members..." : "No members found."}
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((r) => (
-                  <tr
-                    key={r.id}
-                    className="hover:bg-white/5 transition-colors group"
-                  >
-                    {r.getVisibleCells().map((c) => (
-                      <td key={c.id} className="px-6 py-4">
-                        <div className="text-sm font-medium">
-                          {flexRender(c.column.columnDef.cell, c.getContext())}
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <Table table={table} loading={membersLoading} />
         </div>
       </div>
     </div>

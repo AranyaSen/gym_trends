@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   createPlan,
@@ -8,7 +8,6 @@ import {
 import type { PlanRow } from "../../services/admin/admin.types";
 import {
   createColumnHelper,
-  flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -22,16 +21,17 @@ import {
   CardContent,
 } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
-
-const colHelper = createColumnHelper<PlanRow>();
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { planSchema, type PlanFormValues } from "../../schemas/gym";
+import { queryClient } from "../../query/queryClient";
+import { PlanFormValues, planSchema } from "../../schemas/plan/planSchema";
+import { Table } from "../../components/ui/Table";
 
 function AdminPlansPage() {
-  const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
+  const { data: plansData, isLoading: plansLoading } = useQuery({
+    queryKey: ["plans"],
+    queryFn: fetchPlans,
+  });
   const [err, setErr] = useState<string | null>(null);
 
   const {
@@ -49,7 +49,7 @@ function AdminPlansPage() {
     },
   });
 
-  const createM = useMutation({
+  const createMembershipMutation = useMutation({
     mutationFn: (values: PlanFormValues) =>
       createPlan({
         name: values.name,
@@ -58,37 +58,47 @@ function AdminPlansPage() {
       }),
     onSuccess: () => {
       setErr(null);
-      void qc.invalidateQueries({ queryKey: ["plans"] });
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
       reset();
     },
-    onError: () => setErr("Could not create plan"),
+    onError: (err: any) => setErr(err?.message),
   });
 
   const onSubmit = (values: PlanFormValues) => {
-    createM.mutate(values);
+    createMembershipMutation.mutate(values);
   };
 
-  const deactM = useMutation({
+  const deactivateMembershipMutation = useMutation({
     mutationFn: (id: string) => deactivatePlan(id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["plans"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
+    },
   });
 
+  const handlePlanDeactivation = (id: string) => {
+    if (confirm("Deactivate this plan? Existing memberships stay as-is.")) {
+      deactivateMembershipMutation.mutate(id);
+    }
+  };
+
+  const columnHelper = createColumnHelper<PlanRow>();
+
   const columns = [
-    colHelper.accessor("name", { header: "Name" }),
-    colHelper.accessor("priceCents", {
+    columnHelper.accessor("name", { header: "Name" }),
+    columnHelper.accessor("priceCents", {
       header: "Price (₹)",
-      cell: (c) => (c.getValue() / 100).toFixed(2),
+      cell: (data) => (data.getValue() / 100).toFixed(2),
     }),
-    colHelper.accessor("durationDays", { header: "Days" }),
-    colHelper.accessor("isActive", {
+    columnHelper.accessor("durationDays", { header: "Days" }),
+    columnHelper.accessor("isActive", {
       header: "Status",
-      cell: (c) => (
-        <Badge variant={c.getValue() ? "success" : "neutral"}>
-          {c.getValue() ? "Active" : "Retired"}
+      cell: (data) => (
+        <Badge variant={data.getValue() ? "success" : "neutral"}>
+          {data.getValue() ? "Active" : "Deactivated"}
         </Badge>
       ),
     }),
-    colHelper.display({
+    columnHelper.display({
       id: "actions",
       header: "Actions",
       cell: (ctx) =>
@@ -97,18 +107,10 @@ function AdminPlansPage() {
             variant="ghost"
             size="sm"
             className="text-amber-400 hover:text-amber-300 h-8 px-2"
-            onClick={() => {
-              if (
-                confirm(
-                  "Deactivate this plan? Existing memberships stay as-is.",
-                )
-              ) {
-                deactM.mutate(ctx.row.original.id);
-              }
-            }}
+            onClick={() => handlePlanDeactivation(ctx.row.original.id)}
           >
             <ShieldAlert className="w-4 h-4 mr-1" />
-            Retire
+            Deactivate
           </Button>
         ) : (
           <span className="text-[10px] text-brand-muted uppercase font-bold italic">
@@ -119,7 +121,7 @@ function AdminPlansPage() {
   ];
 
   const table = useReactTable({
-    data: q.data ?? [],
+    data: plansData ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -156,7 +158,6 @@ function AdminPlansPage() {
               label="Price (INR)"
               placeholder="2999"
               type="number"
-              step="0.01"
               error={errors.price?.message}
               {...register("price")}
             />
@@ -170,10 +171,10 @@ function AdminPlansPage() {
             />
             <Button
               type="submit"
-              disabled={createM.isPending}
+              disabled={createMembershipMutation.isPending}
               className="w-full h-11"
             >
-              {createM.isPending ? (
+              {createMembershipMutation.isPending ? (
                 "Creating..."
               ) : (
                 <>
@@ -193,48 +194,7 @@ function AdminPlansPage() {
 
       <div className="glass-card overflow-hidden border-brand-border/20 shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm text-slate-200">
-            <thead className="bg-white/5 text-[10px] uppercase font-black tracking-widest text-brand-muted border-b border-brand-border/20">
-              {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id}>
-                  {hg.headers.map((h) => (
-                    <th key={h.id} className="px-6 py-4">
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-6 py-20 text-center text-brand-muted italic"
-                  >
-                    {q.isLoading
-                      ? "Loading tiers..."
-                      : "No membership plans found."}
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((r) => (
-                  <tr
-                    key={r.id}
-                    className="hover:bg-white/5 transition-colors group"
-                  >
-                    {r.getVisibleCells().map((c) => (
-                      <td key={c.id} className="px-6 py-4">
-                        <div className="text-sm font-medium">
-                          {flexRender(c.column.columnDef.cell, c.getContext())}
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <Table table={table} loading={plansLoading} />
         </div>
       </div>
     </div>
