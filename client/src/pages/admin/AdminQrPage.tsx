@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { ROUTES } from "../../constants/routes";
-import { mintQrToken } from "../../services/authApi";
+import { generateQrToken } from "../../services/auth/auth.services";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 
@@ -15,7 +15,7 @@ function AdminQrPage() {
   const [err, setErr] = useState<string | null>(null);
 
   const mintEntry = useMutation({
-    mutationFn: () => mintQrToken({ type: "ENTRY" }),
+    mutationFn: () => generateQrToken({ type: "ENTRY" }),
     onSuccess: (d) => {
       setEntry(d);
       setErr(null);

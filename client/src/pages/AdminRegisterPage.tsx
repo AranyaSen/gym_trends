@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
-import { registerAdmin } from "../services/authApi";
+import { registerAdmin } from "../services/auth/auth.services";
 import { Button } from "../components/ui/Button";
 import {
   Card,

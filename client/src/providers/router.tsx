@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { App } from "../App";
 import { HomePage } from "../pages/HomePage";
 import { LoginPage } from "../pages/LoginPage";
-import { JoinRegisterPage } from "../pages/JoinRegisterPage";
+import { MemberRegisterPage } from "../pages/MemberRegisterPage";
 import { RequireAuth } from "../components/RequireAuth";
 import { AdminRegisterPage } from "../pages/AdminRegisterPage";
 import { ROUTES } from "../constants/routes";
@@ -27,9 +27,9 @@ const AdminAttendancePage = lazy(
 );
 const AdminExportsPage = lazy(() => import("../pages/admin/AdminExportsPage"));
 const AdminAuditPage = lazy(() => import("../pages/admin/AdminAuditPage"));
-const MemberHomePage = lazy(() => import("../pages/MemberHomePage"));
-const TrainerHomePage = lazy(() => import("../pages/TrainerHomePage"));
-const MemberScanPage = lazy(() => import("../pages/MemberScanPage"));
+const MemberHomePage = lazy(() => import("../pages/member/MemberHomePage"));
+const TrainerHomePage = lazy(() => import("../pages/trainer/TrainerHomePage"));
+const MemberScanPage = lazy(() => import("../pages/member/MemberScanPage"));
 
 export const router = createBrowserRouter([
   {
@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.REGISTER,
-        element: <JoinRegisterPage />,
+        element: <MemberRegisterPage />,
       },
       {
         path: ROUTES.ADMIN,

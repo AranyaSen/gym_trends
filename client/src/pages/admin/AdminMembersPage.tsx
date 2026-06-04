@@ -8,13 +8,13 @@ import {
   fetchPlans,
   renewMembership,
   switchMembership,
-  type MemberRow,
-} from "../../services/adminApi";
+} from "../../services/admin/admin.services";
+import type { MemberRow } from "../../services/admin/admin.types";
 import {
   fetchPlanRequests,
   approvePlanRequest,
   rejectPlanRequest,
-} from "../../services/planRequestApi";
+} from "../../services/planRequest/planRequest.services";
 import {
   createColumnHelper,
   flexRender,

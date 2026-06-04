@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ROUTES } from "../constants/routes";
-import { fetchAssignedMembers } from "../services/trainerApi";
+import { ROUTES } from "../../constants/routes";
+import { fetchAssignedMembers } from "../../services/trainer/trainer.services";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { Badge } from "../components/ui/Badge";
+} from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
 
 function TrainerHomePage() {
   const q = useQuery({

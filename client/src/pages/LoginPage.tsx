@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
-import { login } from "../services/authApi";
+import { login } from "../services/auth/auth.services";
 import { Button } from "../components/ui/Button";
 import {
   Card,

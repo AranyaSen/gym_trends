@@ -29,7 +29,7 @@ const loginSchema = Joi.object({
 export async function registerAdmin(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const { error, value } = registerAdminSchema.validate(req.body);
@@ -45,7 +45,11 @@ export async function registerAdmin(
   }
 }
 
-export async function registerJoin(req: Request, res: Response, next: NextFunction) {
+export async function registerMember(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const { error, value } = registerJoinSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
@@ -68,9 +72,12 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     const { error, value } = loginSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
     const out = await authService.login(value);
-    const { pendingPlanRequest } = await authService.getUserDetails(out.user.id, out.user.gymId);
-    return ok(res, { 
-      token: out.token, 
+    const { pendingPlanRequest } = await authService.getUserDetails(
+      out.user.id,
+      out.user.gymId,
+    );
+    return ok(res, {
+      token: out.token,
       user: sanitizeUser(out.user),
       membership: out.membership,
       gym: out.gym
@@ -79,7 +86,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
             geoFencingEnabled: out.gym.geoFencingEnabled,
           }
         : null,
-      pendingPlanRequest
+      pendingPlanRequest,
     });
   } catch (e) {
     next(e);
@@ -89,8 +96,9 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 export async function me(req: Request, res: Response, next: NextFunction) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
-    const { membership, gym, pendingPlanRequest } = await authService.getUserDetails(u.id, u.gymId);
-    return ok(res, { 
+    const { membership, gym, pendingPlanRequest } =
+      await authService.getUserDetails(u.id, u.gymId);
+    return ok(res, {
       user: { id: u.id, role: u.role, gymId: u.gymId },
       membership,
       gym: gym
@@ -99,14 +107,20 @@ export async function me(req: Request, res: Response, next: NextFunction) {
             geoFencingEnabled: gym.geoFencingEnabled,
           }
         : null,
-      pendingPlanRequest
+      pendingPlanRequest,
     });
   } catch (e) {
     next(e);
   }
 }
 
-function sanitizeUser(u: { id: string; email: string; name: string; role: Role; gymId: string | null }) {
+function sanitizeUser(u: {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  gymId: string | null;
+}) {
   return {
     id: u.id,
     email: u.email,

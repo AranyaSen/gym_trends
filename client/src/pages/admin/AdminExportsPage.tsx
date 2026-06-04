@@ -1,5 +1,5 @@
 import { useState, ReactNode } from "react";
-import { downloadExport } from "../../services/adminApi";
+import { downloadExport } from "../../services/admin/admin.services";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

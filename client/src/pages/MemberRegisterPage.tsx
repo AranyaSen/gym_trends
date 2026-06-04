@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
-import { registerJoin } from "../services/authApi";
+import { registerMember } from "../services/auth/auth.services";
 import { Button } from "../components/ui/Button";
 import {
   Card,
@@ -13,7 +13,6 @@ import {
 } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -21,8 +20,8 @@ import {
   type JoinRegisterFormValues,
 } from "../schemas/auth";
 
-export function JoinRegisterPage() {
-  const nav = useNavigate();
+export function MemberRegisterPage() {
+  const navigate = useNavigate();
   const { setToken } = useAuth();
   const [err, setErr] = useState<string | null>(null);
 
@@ -46,13 +45,17 @@ export function JoinRegisterPage() {
 
   const selectedRole = watch("role");
 
-  const m = useMutation({
-    mutationFn: (values: JoinRegisterFormValues) => registerJoin(values),
-    onSuccess: (d) => {
-      setToken(d.token);
-      nav(selectedRole === "TRAINER" ? ROUTES.TRAINER : ROUTES.MEMBER, {
-        replace: true,
-      });
+  const handleNavigation = () => {
+    navigate(selectedRole === "TRAINER" ? ROUTES.TRAINER : ROUTES.MEMBER, {
+      replace: true,
+    });
+  };
+
+  const registerMutation = useMutation({
+    mutationFn: (values: JoinRegisterFormValues) => registerMember(values),
+    onSuccess: (data) => {
+      setToken(data.token);
+      handleNavigation();
     },
     onError: (e: unknown) => {
       const msg =
@@ -68,7 +71,7 @@ export function JoinRegisterPage() {
 
   const onSubmit = (values: JoinRegisterFormValues) => {
     setErr(null);
-    m.mutate(values);
+    registerMutation.mutate(values);
   };
 
   return (
@@ -77,20 +80,6 @@ export function JoinRegisterPage() {
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="w-full max-w-md space-y-8 relative z-10">
-        <header className="text-center space-y-2">
-          <Link
-            to={ROUTES.HOME}
-            className="inline-block transition-transform hover:scale-105"
-          >
-            <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
-              GYM-TRAC
-            </h1>
-          </Link>
-          <p className="text-brand-muted font-bold uppercase tracking-[0.2em] text-[10px]">
-            Join the elite circle
-          </p>
-        </header>
-
         <Card className="neon-border">
           <CardHeader>
             <CardTitle className="text-center">Member Registration</CardTitle>
@@ -154,10 +143,10 @@ export function JoinRegisterPage() {
 
               <Button
                 type="submit"
-                disabled={m.isPending}
+                disabled={registerMutation.isPending}
                 className="w-full mt-2"
               >
-                {m.isPending ? "Joining…" : "Create Account"}
+                {registerMutation.isPending ? "Joining…" : "Create Account"}
               </Button>
             </form>
           </CardContent>

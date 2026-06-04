@@ -4,7 +4,7 @@ import {
   updateGymSettings,
   fetchMyGym,
   type GymRecord,
-} from "../../services/authApi";
+} from "../../services/auth/auth.services";
 import { useTrackLocation } from "../../hooks/useTrackLocation";
 import {
   Check,

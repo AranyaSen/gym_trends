@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
-import { fetchDashboard } from "../../services/adminApi";
-import { fetchMyGym } from "../../services/authApi";
+import { fetchDashboard } from "../../services/admin/admin.services";
+import { fetchMyGym } from "../../services/auth/auth.services";
 import {
   Card,
   CardContent,

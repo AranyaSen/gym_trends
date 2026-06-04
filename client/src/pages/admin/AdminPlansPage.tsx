@@ -4,8 +4,8 @@ import {
   createPlan,
   deactivatePlan,
   fetchPlans,
-  type PlanRow,
-} from "../../services/adminApi";
+} from "../../services/admin/admin.services";
+import type { PlanRow } from "../../services/admin/admin.types";
 import {
   createColumnHelper,
   flexRender,

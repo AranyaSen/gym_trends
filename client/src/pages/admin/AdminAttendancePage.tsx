@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import {
   createManualAttendance,
   fetchAttendance,
-} from "../../services/adminApi";
+} from "../../services/admin/admin.services";
 import {
   createColumnHelper,
   flexRender,

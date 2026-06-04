@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchAuditLogs } from "../../services/adminApi";
+import { fetchAuditLogs } from "../../services/admin/admin.services";
 import {
   createColumnHelper,
   flexRender,

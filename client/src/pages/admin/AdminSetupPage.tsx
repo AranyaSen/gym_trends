@@ -2,7 +2,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
-import { completeGymSetup, fetchMyGym } from "../../services/authApi";
+import {
+  completeGymSetup,
+  fetchMyGym,
+} from "../../services/auth/auth.services";
 import { Button } from "../../components/ui/Button";
 import {
   Card,

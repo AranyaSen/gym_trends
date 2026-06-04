@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ROUTES } from "../constants/routes";
-import { fetchMe, scanAttendance } from "../services/authApi";
-import { useQrScanner, SCANNER_ELEMENT_ID } from "../hooks/useQrScanner";
+import { ROUTES } from "../../constants/routes";
+import {
+  fetchMemberPayload,
+  scanAttendance,
+} from "../../services/auth/auth.services";
+import { useQrScanner, SCANNER_ELEMENT_ID } from "../../hooks/useQrScanner";
 import { Check, X, Camera } from "lucide-react";
 
 type PageState = "idle" | "scanning" | "submitting" | "success" | "error";
@@ -41,7 +44,7 @@ function MemberScanPage() {
   const [message, setMessage] = useState("");
   const positionPromiseRef = useRef<Promise<GeolocationPosition> | null>(null);
 
-  const meQuery = useQuery({ queryKey: ["me"], queryFn: fetchMe });
+  const meQuery = useQuery({ queryKey: ["me"], queryFn: fetchMemberPayload });
   const geoRequired = meQuery.data?.gym?.geoFencingEnabled !== false;
 
   const handleDetected = useCallback(

@@ -1,21 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ROUTES } from "../constants/routes";
+import { ROUTES } from "../../constants/routes";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { fetchMe } from "../services/authApi";
+} from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { fetchMemberPayload } from "../../services/auth/auth.services";
 import {
   createPlanRequest,
   createRazorpayOrder,
   fetchPlans,
-} from "../services/planRequestApi";
-import { useAuth } from "../hooks/useAuth";
-import { useToast } from "../components/ui/Toast";
+} from "../../services/planRequest/planRequest.services";
+import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../components/ui/Toast";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -35,7 +35,7 @@ function MemberHomePage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["auth_me"],
-    queryFn: fetchMe,
+    queryFn: fetchMemberPayload,
   });
 
   const { data: plans, isLoading: plansLoading } = useQuery({
