@@ -12,6 +12,7 @@ import {
 } from "../../components/ui/Card";
 import { useToast } from "../../components/ui/Toast";
 import { KPIIndicator } from "../../components/admin/KPIIndicator";
+import { Loader } from "../../components/ui/Loader";
 
 function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -39,11 +40,7 @@ function AdminDashboardPage() {
   }, [gymData, navigate]);
 
   if (gymLoading || dashboardLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-brand-accent"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (dashboardError || gymError) {
