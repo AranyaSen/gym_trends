@@ -1,165 +1,204 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   createPlan,
   deactivatePlan,
   fetchPlans,
-  type PlanRow,
-} from "../../services/adminApi";
+} from "../../services/admin/admin.services";
+import type { PlanRow } from "../../services/admin/admin.types";
 import {
   createColumnHelper,
-  flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Plus, ShieldAlert } from "lucide-react";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { queryClient } from "../../query/queryClient";
+import { PlanFormValues, planSchema } from "../../schemas/plan/planSchema";
+import { Table } from "../../components/ui/Table";
 
-const colHelper = createColumnHelper<PlanRow>();
-
-export function AdminPlansPage() {
-  const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["plans"], queryFn: fetchPlans });
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [days, setDays] = useState("30");
+function AdminPlansPage() {
+  const { data: plansData, isLoading: plansLoading } = useQuery({
+    queryKey: ["plans"],
+    queryFn: fetchPlans,
+  });
   const [err, setErr] = useState<string | null>(null);
 
-  const createM = useMutation({
-    mutationFn: () =>
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PlanFormValues>({
+    resolver: zodResolver(planSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      price: "",
+      days: "30",
+    },
+  });
+
+  const createMembershipMutation = useMutation({
+    mutationFn: (values: PlanFormValues) =>
       createPlan({
-        name,
-        priceCents: Math.round(Number(price) * 100),
-        durationDays: Number(days),
+        name: values.name,
+        priceCents: Math.round(Number(values.price) * 100),
+        durationDays: Number(values.days),
       }),
     onSuccess: () => {
       setErr(null);
-      void qc.invalidateQueries({ queryKey: ["plans"] });
-      setName("");
-      setPrice("");
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
+      reset();
     },
-    onError: () => setErr("Could not create plan"),
+    onError: (err: any) => setErr(err?.message),
   });
 
-  const deactM = useMutation({
+  const onSubmit = (values: PlanFormValues) => {
+    createMembershipMutation.mutate(values);
+  };
+
+  const deactivateMembershipMutation = useMutation({
     mutationFn: (id: string) => deactivatePlan(id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["plans"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
+    },
   });
+
+  const handlePlanDeactivation = (id: string) => {
+    if (confirm("Deactivate this plan? Existing memberships stay as-is.")) {
+      deactivateMembershipMutation.mutate(id);
+    }
+  };
+
+  const columnHelper = createColumnHelper<PlanRow>();
 
   const columns = [
-    colHelper.accessor("name", { header: "Name" }),
-    colHelper.accessor("priceCents", {
+    columnHelper.accessor("name", { header: "Name" }),
+    columnHelper.accessor("priceCents", {
       header: "Price (₹)",
-      cell: (c) => (c.getValue() / 100).toFixed(2),
+      cell: (data) => (data.getValue() / 100).toFixed(2),
     }),
-    colHelper.accessor("durationDays", { header: "Days" }),
-    colHelper.accessor("isActive", {
-      header: "Active",
-      cell: (c) => (c.getValue() ? "Yes" : "No"),
+    columnHelper.accessor("durationDays", { header: "Days" }),
+    columnHelper.accessor("isActive", {
+      header: "Status",
+      cell: (data) => (
+        <Badge variant={data.getValue() ? "success" : "neutral"}>
+          {data.getValue() ? "Active" : "Deactivated"}
+        </Badge>
+      ),
     }),
-    colHelper.display({
+    columnHelper.display({
       id: "actions",
-      header: "",
+      header: "Actions",
       cell: (ctx) =>
         ctx.row.original.isActive ? (
-          <button
-            type="button"
-            className="text-xs text-amber-400 hover:text-amber-300"
-            onClick={() => {
-              if (
-                confirm(
-                  "Deactivate this plan? Existing memberships stay as-is."
-                )
-              ) {
-                deactM.mutate(ctx.row.original.id);
-              }
-            }}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-amber-400 hover:text-amber-300 h-8 px-2"
+            onClick={() => handlePlanDeactivation(ctx.row.original.id)}
           >
+            <ShieldAlert className="w-4 h-4 mr-1" />
             Deactivate
-          </button>
-        ) : null,
+          </Button>
+        ) : (
+          <span className="text-[10px] text-brand-muted uppercase font-bold italic">
+            No actions
+          </span>
+        ),
     }),
   ];
 
   const table = useReactTable({
-    data: q.data ?? [],
+    data: plansData ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Plans</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Unlimited tiers; deactivate when retiring a tier.
-        </p>
-      </div>
-      <form
-        className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:grid-cols-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          createM.mutate();
-        }}
-      >
-        <input
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          placeholder="Price INR"
-          type="number"
-          step="0.01"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          required
-        />
-        <input
-          className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
-          placeholder="Duration days"
-          type="number"
-          min={1}
-          value={days}
-          onChange={(e) => setDays(e.target.value)}
-          required
-        />
-        <button
-          type="submit"
-          disabled={createM.isPending}
-          className="rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
-        >
-          Add plan
-        </button>
-      </form>
-      {err && <p className="text-sm text-red-400">{err}</p>}
-      <div className="overflow-x-auto rounded-xl border border-slate-800">
-        <table className="min-w-full text-left text-sm text-slate-200">
-          <thead className="bg-slate-900/80 text-xs uppercase text-slate-500">
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((h) => (
-                  <th key={h.id} className="px-3 py-2 font-medium">
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((r) => (
-              <tr key={r.id} className="border-t border-slate-800">
-                {r.getVisibleCells().map((c) => (
-                  <td key={c.id} className="px-3 py-2">
-                    {flexRender(c.column.columnDef.cell, c.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-8">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-white">Membership Plans</h2>
+          <p className="text-brand-muted font-medium uppercase tracking-[0.2em] text-[10px] mt-1">
+            Configure your gym's subscription tiers
+          </p>
+        </div>
+      </header>
+
+      <Card className="neon-border overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-sm uppercase tracking-widest text-brand-muted">
+            Create New Plan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="grid gap-4 sm:grid-cols-4 items-end"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <Input
+              label="Tier Name"
+              placeholder="e.g. Gold Monthly"
+              error={errors.name?.message}
+              {...register("name")}
+            />
+            <Input
+              label="Price (INR)"
+              placeholder="2999"
+              type="number"
+              error={errors.price?.message}
+              {...register("price")}
+            />
+            <Input
+              label="Duration (Days)"
+              placeholder="30"
+              type="number"
+              min={1}
+              error={errors.days?.message}
+              {...register("days")}
+            />
+            <Button
+              type="submit"
+              disabled={createMembershipMutation.isPending}
+              className="w-full h-11"
+            >
+              {createMembershipMutation.isPending ? (
+                "Creating..."
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Plan
+                </>
+              )}
+            </Button>
+          </form>
+          {err && (
+            <p className="mt-4 text-xs font-bold text-red-400 uppercase tracking-wider text-center">
+              {err}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="glass-card overflow-hidden border-brand-border/20 shadow-2xl">
+        <div className="overflow-x-auto">
+          <Table table={table} loading={plansLoading} />
+        </div>
       </div>
     </div>
   );
 }
+
+export default AdminPlansPage;

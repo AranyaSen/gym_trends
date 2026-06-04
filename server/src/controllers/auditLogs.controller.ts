@@ -1,26 +1,31 @@
 import { Request, Response, NextFunction } from "express";
 import * as auditService from "../services/audit.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
+import { paginateResponse } from "../utils/paginate";
 
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
-    const u = (req as Request & { user: AuthedUser }).user;
-    if (!u.gymId) return fail(res, "No gym", 400);
-    const skip = Math.min(Number(req.query.skip ?? 0), 100000);
-    const take = Math.min(Number(req.query.take ?? 50), 200);
-    const from = req.query.from
-      ? new Date(String(req.query.from))
-      : undefined;
+    const user = (req as Request & { user: AuthedUser }).user;
+    if (!user.gymId) return fail(res, "No gym", 400);
+    const page = Number(req.query.page ?? 1);
+    const itemsPerPage = Number(req.query.itemsPerPage ?? 10);
+    const from = req.query.from ? new Date(String(req.query.from)) : undefined;
     const to = req.query.to ? new Date(String(req.query.to)) : undefined;
-    const out = await auditService.listAuditLogs({
-      gymId: u.gymId,
+    const logs = await auditService.listAuditLogs({
+      gymId: user.gymId,
       from,
       to,
-      skip: Number.isFinite(skip) ? skip : 0,
-      take: Number.isFinite(take) ? take : 50,
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
     });
-    return ok(res, out);
+    const paginatedData = paginateResponse({
+      items: logs.items,
+      total: logs.total,
+      page,
+      itemsPerPage,
+    });
+    return success(res, paginatedData);
   } catch (e) {
     next(e);
   }

@@ -2,19 +2,20 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "./ui/Button";
+import { Settings } from "lucide-react";
 
 const links: { to: string; label: string }[] = [
-  { to: ROUTES.admin, label: "Overview" },
-  { to: ROUTES.adminPlans, label: "Plans" },
-  { to: ROUTES.adminMembers, label: "Members" },
-  { to: ROUTES.adminTrainers, label: "Trainers" },
-  { to: ROUTES.adminAttendance, label: "Attendance" },
-  { to: ROUTES.adminExports, label: "Exports" },
-  { to: ROUTES.adminAudit, label: "Audit" },
-  { to: ROUTES.adminQr, label: "QR" },
+  { to: ROUTES.ADMIN, label: "Overview" },
+  { to: ROUTES.ADMIN_PLANS, label: "Plans" },
+  { to: ROUTES.ADMIN_MEMBERS, label: "Members" },
+  { to: ROUTES.ADMIN_TRAINERS, label: "Trainers" },
+  { to: ROUTES.ADMIN_ATTENDANCE, label: "Attendance" },
+  { to: ROUTES.ADMIN_EXPORTS, label: "Exports" },
+  { to: ROUTES.ADMIN_AUDIT, label: "Audit" },
+  { to: ROUTES.ADMIN_QR, label: "QR" },
 ];
 
-export function AdminLayout() {
+function AdminLayout() {
   const { logout } = useAuth();
   const nav = useNavigate();
   const location = useLocation();
@@ -29,12 +30,12 @@ export function AdminLayout() {
       <header className="sticky top-0 z-50 glass border-b border-brand-border/30 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to={ROUTES.admin} className="group">
+            <Link to={ROUTES.ADMIN} className="group">
               <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50 group-hover:to-brand-accent transition-all duration-300">
-                ADMIN.PRO
+                GYM TRAC
               </h1>
             </Link>
-            
+
             <nav className="hidden md:flex items-center gap-1">
               {links.map((l) => {
                 const isActive = location.pathname === l.to;
@@ -42,8 +43,8 @@ export function AdminLayout() {
                   <Link
                     key={l.to}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
-                      isActive 
-                        ? "text-brand-accent bg-brand-accent/10 neon-border border" 
+                      isActive
+                        ? "text-brand-accent bg-brand-accent/10 neon-border border"
                         : "text-brand-muted hover:text-white hover:bg-white/5"
                     }`}
                     to={l.to}
@@ -56,13 +57,27 @@ export function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-4">
+            <div
+              className="flex items-center cursor-pointer"
+              onClick={() => {
+                nav(ROUTES.ADMIN_PREFERENCES);
+              }}
+            >
+              <Settings
+                className={`w-5 h-5 transition-colors ${
+                  location.pathname === ROUTES.ADMIN_PREFERENCES
+                    ? "text-brand-accent"
+                    : "text-brand-muted hover:text-brand-accent"
+                }`}
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"
-              className="text-[10px] h-8"
+              className="text-[10px] h-8 flex justify-end"
               onClick={() => {
                 logout();
-                nav(ROUTES.home);
+                nav(ROUTES.HOME);
               }}
             >
               Sign Out
@@ -91,3 +106,4 @@ export function AdminLayout() {
   );
 }
 
+export default AdminLayout;

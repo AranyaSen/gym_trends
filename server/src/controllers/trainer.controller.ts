@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import * as trainerService from "../services/trainer.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const linkSchema = Joi.object({
@@ -12,19 +12,23 @@ const linkSchema = Joi.object({
 export async function listTrainers(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
     if (!u.gymId) return fail(res, "No gym", 400);
     const rows = await trainerService.listTrainers(u.gymId);
-    return ok(res, { trainers: rows });
+    return success(res, { trainers: rows });
   } catch (e) {
     next(e);
   }
 }
 
-export async function linkPair(req: Request, res: Response, next: NextFunction) {
+export async function linkPair(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
     if (!u.gymId) return fail(res, "No gym", 400);
@@ -35,7 +39,7 @@ export async function linkPair(req: Request, res: Response, next: NextFunction) 
       adminUserId: u.id,
       ...value,
     });
-    return ok(res, out);
+    return success(res, out);
   } catch (e) {
     next(e);
   }
@@ -44,7 +48,7 @@ export async function linkPair(req: Request, res: Response, next: NextFunction) 
 export async function unlinkPair(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
@@ -58,7 +62,7 @@ export async function unlinkPair(
       trainerId,
       memberId,
     });
-    return ok(res, out);
+    return success(res, out);
   } catch (e) {
     next(e);
   }
@@ -67,16 +71,16 @@ export async function unlinkPair(
 export async function myMembers(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
     if (!u.gymId) return fail(res, "No gym", 400);
     const rows = await trainerService.listAssignedMembersForTrainer(
       u.gymId,
-      u.id
+      u.id,
     );
-    return ok(res, { members: rows });
+    return success(res, { members: rows });
   } catch (e) {
     next(e);
   }

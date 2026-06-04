@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import { Role } from "@prisma/client";
 import * as lifecycle from "../services/membership.lifecycle.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const renewSchema = Joi.object({
@@ -27,7 +27,7 @@ export async function renew(req: Request, res: Response, next: NextFunction) {
       adminUserId: u.id,
       ...value,
     });
-    return ok(res, { membership: m });
+    return success(res, { membership: m });
   } catch (e) {
     next(e);
   }
@@ -36,7 +36,7 @@ export async function renew(req: Request, res: Response, next: NextFunction) {
 export async function switchPlan(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
@@ -50,7 +50,7 @@ export async function switchPlan(
       planId: value.planId,
       changeType: value.changeType,
     });
-    return ok(res, { membership: m });
+    return success(res, { membership: m });
   } catch (e) {
     next(e);
   }

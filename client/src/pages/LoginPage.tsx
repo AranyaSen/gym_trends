@@ -1,28 +1,47 @@
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../hooks/useAuth";
-import { login } from "../services/authApi";
+import { login } from "../services/auth/auth.services";
 import { Button } from "../components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
+import { loginSchema, type LoginFormValues } from "../schemas/auth";
 
 function homeForRole(role: string) {
-  if (role === "ADMIN") return ROUTES.admin;
-  if (role === "TRAINER") return ROUTES.trainer;
-  return ROUTES.member;
+  if (role === "ADMIN") return ROUTES.ADMIN;
+  if (role === "TRAINER") return ROUTES.TRAINER;
+  return ROUTES.MEMBER;
 }
 
 export function LoginPage() {
   const nav = useNavigate();
   const { setToken } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors, isValid },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   const m = useMutation({
-    mutationFn: () => login({ email, password }),
+    mutationFn: (values: LoginFormValues) => login(values),
     onSuccess: (d) => {
       setToken(d.token);
       const role = (d.user as { role: string }).role;
@@ -32,13 +51,28 @@ export function LoginPage() {
       const msg =
         e && typeof e === "object" && "response" in e
           ? String(
-              (e as { response?: { data?: { error?: { message?: string } } } })
-                .response?.data?.error?.message
+              (
+                e as {
+                  response?: {
+                    data?: {
+                      error?: { message?: string };
+                    };
+                  };
+                }
+              ).response?.data?.error?.message,
             )
           : "Login failed";
-      setErr(msg || "Login failed");
+
+      setError("root.auth", {
+        type: "server",
+        message: msg || "Login failed",
+      });
     },
   });
+
+  const onSubmit = (values: LoginFormValues) => {
+    m.mutate(values);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-brand-bg relative overflow-hidden">
@@ -47,7 +81,10 @@ export function LoginPage() {
 
       <div className="w-full max-w-md space-y-8 relative z-10">
         <header className="text-center space-y-2">
-          <Link to={ROUTES.home} className="inline-block transition-transform hover:scale-105">
+          <Link
+            to={ROUTES.HOME}
+            className="inline-block transition-transform hover:scale-105"
+          >
             <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
               GYM-TRAC
             </h1>
@@ -62,40 +99,39 @@ export function LoginPage() {
             <CardTitle className="text-center">Authentication</CardTitle>
           </CardHeader>
           <CardContent>
-            <form
-              className="space-y-6"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setErr(null);
-                m.mutate();
-              }}
-            >
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <Input
                 label="Email"
                 type="email"
                 placeholder="name@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email", {
+                  onChange: () => {
+                    clearErrors("root.auth");
+                  },
+                })}
+                error={errors.email?.message}
               />
               <Input
                 label="Password"
                 type="password"
                 placeholder="••••••••"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register("password", {
+                  onChange: () => {
+                    clearErrors("root.auth");
+                  },
+                })}
+                error={errors.password?.message}
               />
 
-              {err && (
+              {errors.root?.auth?.message && (
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-wider text-center">
-                  {err}
+                  {errors.root.auth.message}
                 </div>
               )}
 
               <Button
                 type="submit"
-                disabled={m.isPending}
+                disabled={m.isPending || !isValid}
                 className="w-full"
               >
                 {m.isPending ? "Signing in…" : "Access Gym"}
@@ -105,9 +141,9 @@ export function LoginPage() {
         </Card>
 
         <footer className="text-center">
-          <Link 
-            className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors" 
-            to={ROUTES.home}
+          <Link
+            className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
+            to={ROUTES.HOME}
           >
             ← Back to Home
           </Link>
@@ -116,4 +152,3 @@ export function LoginPage() {
     </div>
   );
 }
-

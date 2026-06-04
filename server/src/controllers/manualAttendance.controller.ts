@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import * as manualAttendanceService from "../services/manualAttendance.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const bodySchema = Joi.object({
@@ -13,7 +13,7 @@ const bodySchema = Joi.object({
 export async function createManual(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
@@ -27,7 +27,7 @@ export async function createManual(
       checkInAt: new Date(value.checkInAt),
       checkOutAt: value.checkOutAt ? new Date(value.checkOutAt) : undefined,
     });
-    return ok(res, { attendance: row });
+    return success(res, { attendance: row });
   } catch (e) {
     next(e);
   }

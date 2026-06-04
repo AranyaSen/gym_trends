@@ -100,5 +100,29 @@ export async function login(input: { email: string; password: string }) {
     gymId: user.gymId,
   });
 
-  return { user, token };
+  const membership = await prisma.membership.findFirst({
+    where: { userId: user.id, gymId: user.gymId! },
+    orderBy: { endDate: "desc" },
+    include: { plan: true },
+  });
+
+  const gym = user.gymId ? await prisma.gym.findUnique({ where: { id: user.gymId } }) : null;
+
+  return { user, token, membership, gym };
+}
+
+export async function getUserDetails(userId: string, gymId: string | null) {
+  const membership = gymId ? await prisma.membership.findFirst({
+    where: { userId, gymId },
+    orderBy: { endDate: "desc" },
+    include: { plan: true },
+  }) : null;
+
+  const gym = gymId ? await prisma.gym.findUnique({ where: { id: gymId } }) : null;
+
+  const pendingRequest = gymId ? await prisma.planRequest.findFirst({
+    where: { userId, gymId, status: "PENDING" },
+  }) : null;
+
+  return { membership, gym, pendingPlanRequest: !!pendingRequest };
 }

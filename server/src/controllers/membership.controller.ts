@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import { Role } from "@prisma/client";
 import * as membershipService from "../services/membership.service";
-import { fail, ok } from "../utils/response";
+import { fail, success } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const assignSchema = Joi.object({
@@ -22,7 +22,7 @@ export async function assign(req: Request, res: Response, next: NextFunction) {
       memberEmail: value.memberEmail,
       planId: value.planId,
     });
-    return ok(res, { membership });
+    return success(res, { membership });
   } catch (e) {
     next(e);
   }

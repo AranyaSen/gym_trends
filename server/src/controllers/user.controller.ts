@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import * as userService from "../services/user.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 export async function listMembers(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
@@ -20,7 +20,7 @@ export async function listMembers(
       skip: Number.isFinite(skip) ? skip : 0,
       take: Number.isFinite(take) ? take : 50,
     });
-    return ok(res, out);
+    return success(res, out);
   } catch (e) {
     next(e);
   }

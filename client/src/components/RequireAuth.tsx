@@ -14,10 +14,10 @@ export function RequireAuth({
   const { user } = useAuth();
   const loc = useLocation();
   if (!user) {
-    return <Navigate to={ROUTES.login} state={{ from: loc }} replace />;
+    return <Navigate to={ROUTES.LOGIN} state={{ from: loc }} replace />;
   }
   if (roles && !roles.includes(user.role)) {
-    return <Navigate to={ROUTES.home} replace />;
+    return <Navigate to={ROUTES.HOME} replace />;
   }
   return children;
 }

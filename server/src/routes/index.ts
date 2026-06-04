@@ -18,10 +18,12 @@ import { requireAuth, requireGym } from "../middleware/auth";
 import { requireRoles } from "../middleware/rbac";
 import { Role } from "@prisma/client";
 
+import * as planRequestController from "../controllers/planRequest.controller";
+
 export const apiRouter = Router();
 
 apiRouter.post("/auth/register/admin", authController.registerAdmin);
-apiRouter.post("/auth/register", authController.registerJoin);
+apiRouter.post("/auth/register", authController.registerMember);
 apiRouter.post("/auth/login", authController.login);
 apiRouter.get("/auth/me", requireAuth, authController.me);
 
@@ -31,7 +33,14 @@ apiRouter.patch(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  gymController.completeSetup
+  gymController.completeSetup,
+);
+apiRouter.patch(
+  "/gym/settings",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  gymController.updateSettings,
 );
 
 apiRouter.get(
@@ -39,22 +48,17 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  dashboardController.getDashboard
+  dashboardController.getDashboard,
 );
 
-apiRouter.get(
-  "/plans",
-  requireAuth,
-  requireGym,
-  planController.listPlans
-);
+apiRouter.get("/plans", requireAuth, requireGym, planController.listPlans);
 
 apiRouter.post(
   "/plans",
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  planController.createPlan
+  planController.createPlan,
 );
 
 apiRouter.post(
@@ -62,7 +66,39 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  planController.deactivatePlan
+  planController.deactivatePlan,
+);
+
+apiRouter.post(
+  "/plan-requests",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.MEMBER),
+  planRequestController.createRequest,
+);
+
+apiRouter.get(
+  "/plan-requests",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  planRequestController.listRequests,
+);
+
+apiRouter.post(
+  "/plan-requests/:id/approve",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  planRequestController.approveRequest,
+);
+
+apiRouter.post(
+  "/plan-requests/:id/reject",
+  requireAuth,
+  requireGym,
+  requireRoles(Role.ADMIN),
+  planRequestController.rejectRequest,
 );
 
 apiRouter.post(
@@ -70,7 +106,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  membershipController.assign
+  membershipController.assign,
 );
 
 apiRouter.post(
@@ -78,7 +114,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  membershipLifecycleController.renew
+  membershipLifecycleController.renew,
 );
 
 apiRouter.post(
@@ -86,7 +122,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  membershipLifecycleController.switchPlan
+  membershipLifecycleController.switchPlan,
 );
 
 apiRouter.post(
@@ -94,7 +130,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  paymentController.offline
+  paymentController.offline,
 );
 
 apiRouter.post(
@@ -102,7 +138,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.MEMBER),
-  paymentController.razorpayOrder
+  paymentController.razorpayOrder,
 );
 
 apiRouter.get(
@@ -110,7 +146,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  userController.listMembers
+  userController.listMembers,
 );
 
 apiRouter.get(
@@ -118,7 +154,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  trainerController.listTrainers
+  trainerController.listTrainers,
 );
 
 apiRouter.post(
@@ -126,7 +162,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  trainerController.linkPair
+  trainerController.linkPair,
 );
 
 apiRouter.delete(
@@ -134,7 +170,7 @@ apiRouter.delete(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  trainerController.unlinkPair
+  trainerController.unlinkPair,
 );
 
 apiRouter.get(
@@ -142,7 +178,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.TRAINER),
-  trainerController.myMembers
+  trainerController.myMembers,
 );
 
 apiRouter.get(
@@ -150,7 +186,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  attendanceListController.list
+  attendanceListController.list,
 );
 
 apiRouter.post(
@@ -158,7 +194,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  manualAttendanceController.createManual
+  manualAttendanceController.createManual,
 );
 
 apiRouter.get(
@@ -166,7 +202,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  exportController.members
+  exportController.members,
 );
 
 apiRouter.get(
@@ -174,7 +210,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  exportController.attendance
+  exportController.attendance,
 );
 
 apiRouter.get(
@@ -182,7 +218,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  exportController.trainers
+  exportController.trainers,
 );
 
 apiRouter.get(
@@ -190,7 +226,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  exportController.audit
+  exportController.audit,
 );
 
 apiRouter.get(
@@ -198,7 +234,7 @@ apiRouter.get(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  auditLogsController.list
+  auditLogsController.list,
 );
 
 apiRouter.post(
@@ -206,7 +242,7 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.ADMIN),
-  qrController.mintQr
+  qrController.mintQr,
 );
 
 apiRouter.post(
@@ -214,5 +250,5 @@ apiRouter.post(
   requireAuth,
   requireGym,
   requireRoles(Role.MEMBER, Role.TRAINER),
-  attendanceController.scan
+  attendanceController.scan,
 );

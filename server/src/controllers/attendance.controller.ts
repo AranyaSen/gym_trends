@@ -2,13 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import { Role } from "@prisma/client";
 import * as attendanceService from "../services/attendance.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const scanSchema = Joi.object({
   token: Joi.string().required(),
-  latitude: Joi.number().required(),
-  longitude: Joi.number().required(),
+  latitude: Joi.number().optional(),
+  longitude: Joi.number().optional(),
 });
 
 export async function scan(req: Request, res: Response, next: NextFunction) {
@@ -26,7 +26,7 @@ export async function scan(req: Request, res: Response, next: NextFunction) {
       latitude: value.latitude,
       longitude: value.longitude,
     });
-    return ok(res, out);
+    return success(res, out);
   } catch (e) {
     next(e);
   }

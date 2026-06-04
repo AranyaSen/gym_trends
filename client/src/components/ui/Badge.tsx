@@ -1,10 +1,5 @@
 import { ReactNode } from "react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { clsx } from "clsx";
 
 interface BadgeProps {
   children: ReactNode;
@@ -12,7 +7,11 @@ interface BadgeProps {
   className?: string;
 }
 
-export function Badge({ children, variant = "neutral", className }: BadgeProps) {
+export function Badge({
+  children,
+  variant = "neutral",
+  className,
+}: BadgeProps) {
   const variants = {
     success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
@@ -23,10 +22,10 @@ export function Badge({ children, variant = "neutral", className }: BadgeProps) 
 
   return (
     <span
-      className={cn(
+      className={clsx(
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider",
         variants[variant],
-        className
+        className,
       )}
     >
       {children}
