@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { ShieldCheck, Clock, User, Fingerprint } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
+import { formatDateTime } from "../../lib/utils/dateTimeFormat";
 
 type Row = {
   id: string;
@@ -29,11 +30,11 @@ function AdminAuditPage() {
   const columns = [
     colHelper.accessor("createdAt", {
       header: "Timestamp",
-      cell: (c) => (
+      cell: (data) => (
         <div className="flex items-center gap-2">
           <Clock className="w-3 h-3 text-brand-muted" />
           <span className="font-mono text-[10px]">
-            {new Date(c.getValue()).toLocaleString()}
+            {formatDateTime(data.getValue())}
           </span>
         </div>
       ),

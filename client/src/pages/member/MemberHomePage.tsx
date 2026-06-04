@@ -16,6 +16,7 @@ import {
 } from "../../services/planRequest/planRequest.services";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../components/ui/Toast";
+import { formatDate } from "../../lib/utils/dateTimeFormat";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -144,9 +145,7 @@ function MemberHomePage() {
                   <span>
                     Price: ₹{(membership.plan.priceCents / 100).toFixed(2)}
                   </span>
-                  <span>
-                    Expires: {new Date(membership.endDate).toLocaleDateString()}
-                  </span>
+                  <span>Expires: {formatDate(membership.endDate)}</span>
                 </div>
               </div>
               <p className="text-sm text-brand-muted px-4 leading-relaxed">

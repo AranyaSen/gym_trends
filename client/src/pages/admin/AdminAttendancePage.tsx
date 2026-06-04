@@ -19,6 +19,8 @@ import {
   CardTitle,
   CardContent,
 } from "../../components/ui/Card";
+import { MONTH_IN_MS } from "../../constants/common.constants";
+import { formatDateTime } from "../../lib/utils/dateTimeFormat";
 
 type Row = {
   id: string;
@@ -33,7 +35,7 @@ function AdminAttendancePage() {
   const qc = useQueryClient();
   const range = useMemo(() => {
     const to = new Date();
-    const from = new Date(to.getTime() - 30 * 86400000);
+    const from = new Date(to.getTime() - MONTH_IN_MS);
     return { from: from.toISOString(), to: to.toISOString() };
   }, []);
 
@@ -79,11 +81,11 @@ function AdminAttendancePage() {
     }),
     colHelper.accessor("checkInAt", {
       header: "Check-in",
-      cell: (c) => (
+      cell: (data) => (
         <div className="flex items-center gap-2">
           <Clock className="w-3 h-3 text-brand-accent" />
           <span className="font-mono text-xs">
-            {new Date(c.getValue()).toLocaleString()}
+            {formatDateTime(data.row.original.checkInAt)}
           </span>
         </div>
       ),

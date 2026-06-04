@@ -42,6 +42,7 @@ import {
 } from "../../schemas/gym";
 import { queryClient } from "../../query/queryClient";
 import { Table } from "../../components/ui/Table";
+import { formatDate } from "../../lib/utils/dateTimeFormat";
 
 function AdminMembersPage() {
   const { data: membersData, isLoading: membersLoading } = useQuery({
@@ -125,22 +126,22 @@ function AdminMembersPage() {
       id: "plan",
       header: "Active Membership",
       cell: (ctx) => {
-        const m = ctx.row.original.memberships[0];
-        if (!m) return <Badge variant="neutral">No Active Plan</Badge>;
+        const member = ctx.row.original.memberships[0];
+        if (!member) return <Badge variant="neutral">No Active Plan</Badge>;
 
-        const isExpired = new Date(m.endDate) < new Date();
+        const isExpired = new Date(member.endDate) < new Date();
 
         return (
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-white">{m.plan.name}</span>
+              <span className="font-bold text-white">{member?.plan?.name}</span>
               <Badge variant={isExpired ? "error" : "success"}>
                 {isExpired ? "Expired" : "Active"}
               </Badge>
             </div>
             <div className="flex items-center gap-1 text-[10px] text-brand-muted font-mono">
               <Calendar className="w-3 h-3" />
-              Expires: {new Date(m.endDate).toLocaleDateString()}
+              Expires: {formatDate(member?.endDate)}
             </div>
           </div>
         );
