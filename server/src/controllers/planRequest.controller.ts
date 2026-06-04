@@ -2,14 +2,18 @@ import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import { Role } from "@prisma/client";
 import * as planRequestService from "../services/planRequest.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const requestSchema = Joi.object({
   planId: Joi.string().required(),
 });
 
-export async function createRequest(req: Request, res: Response, next: NextFunction) {
+export async function createRequest(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
     if (u.role !== Role.MEMBER || !u.gymId) return fail(res, "Forbidden", 403);
@@ -21,25 +25,35 @@ export async function createRequest(req: Request, res: Response, next: NextFunct
       userId: u.id,
       planId: value.planId,
     });
-    return ok(res, { request });
+    return success(res, { request });
   } catch (e) {
     next(e);
   }
 }
 
-export async function listRequests(req: Request, res: Response, next: NextFunction) {
+export async function listRequests(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
     if (u.role !== Role.ADMIN || !u.gymId) return fail(res, "Forbidden", 403);
 
-    const requests = await planRequestService.listPlanRequests({ gymId: u.gymId });
-    return ok(res, { requests });
+    const requests = await planRequestService.listPlanRequests({
+      gymId: u.gymId,
+    });
+    return success(res, { requests });
   } catch (e) {
     next(e);
   }
 }
 
-export async function approveRequest(req: Request, res: Response, next: NextFunction) {
+export async function approveRequest(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
     if (u.role !== Role.ADMIN || !u.gymId) return fail(res, "Forbidden", 403);
@@ -50,13 +64,17 @@ export async function approveRequest(req: Request, res: Response, next: NextFunc
       requestId,
       adminUserId: u.id,
     });
-    return ok(res, out);
+    return success(res, out);
   } catch (e) {
     next(e);
   }
 }
 
-export async function rejectRequest(req: Request, res: Response, next: NextFunction) {
+export async function rejectRequest(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
     if (u.role !== Role.ADMIN || !u.gymId) return fail(res, "Forbidden", 403);
@@ -67,7 +85,7 @@ export async function rejectRequest(req: Request, res: Response, next: NextFunct
       requestId,
       adminUserId: u.id,
     });
-    return ok(res, { request });
+    return success(res, { request });
   } catch (e) {
     next(e);
   }

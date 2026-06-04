@@ -5,7 +5,7 @@ import {
   createRazorpayOrderForMember,
   recordOfflinePayment,
 } from "../services/payment.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const offlineSchema = Joi.object({
@@ -30,7 +30,7 @@ export async function offline(req: Request, res: Response, next: NextFunction) {
       adminUserId: u.id,
       ...value,
     });
-    return ok(res, { payment });
+    return success(res, { payment });
   } catch (e) {
     next(e);
   }
@@ -39,7 +39,7 @@ export async function offline(req: Request, res: Response, next: NextFunction) {
 export async function razorpayOrder(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const u = (req as Request & { user: AuthedUser }).user;
@@ -53,7 +53,7 @@ export async function razorpayOrder(
       userId: u.id,
       planId: value.planId,
     });
-    return ok(res, out);
+    return success(res, out);
   } catch (e) {
     next(e);
   }

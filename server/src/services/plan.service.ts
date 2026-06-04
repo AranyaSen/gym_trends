@@ -29,7 +29,7 @@ export async function createPlan(input: {
 
 export async function listPlansForGym(gymId: string) {
   return prisma.plan.findMany({
-    where: { gymId },
+    where: { gymId, isActive: true },
     orderBy: { createdAt: "desc" },
   });
 }

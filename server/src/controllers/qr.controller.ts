@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import { QrType } from "@prisma/client";
 import * as qrService from "../services/qr.service";
-import { ok, fail } from "../utils/response";
+import { success, fail } from "../utils/response";
 import type { AuthedUser } from "../middleware/auth";
 
 const bodySchema = Joi.object({
@@ -16,7 +16,7 @@ export async function mintQr(req: Request, res: Response, next: NextFunction) {
     const { error, value } = bodySchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
     const out = await qrService.createQrForGym(u.gymId, QrType.ENTRY);
-    return ok(res, out);
+    return success(res, out);
   } catch (e) {
     next(e);
   }
