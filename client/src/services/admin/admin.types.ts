@@ -1,3 +1,5 @@
+import { PaginationResponseType } from "../../types/api";
+
 export type DashboardStats = {
   totalMembers: number;
   activeMembers: number;
@@ -112,5 +114,10 @@ export type AuditLogEntry = {
 
 export type FetchAuditLogsResponse = {
   items: AuditLogEntry[];
-  total: number;
+  pagination: PaginationResponseType;
+};
+
+export type AuditLogsParams = {
+  page: number;
+  itemsPerPage?: number;
 };

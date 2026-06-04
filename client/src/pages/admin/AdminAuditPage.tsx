@@ -9,6 +9,8 @@ import {
 import { ShieldCheck, Clock, User, Fingerprint } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 import { formatDateTime } from "../../lib/utils/dateTimeFormat";
+import { Pagination } from "../../components/ui/Pagination";
+import { useMemo, useState } from "react";
 
 type Row = {
   id: string;
@@ -22,68 +24,82 @@ type Row = {
 const colHelper = createColumnHelper<Row>();
 
 function AdminAuditPage() {
-  const q = useQuery({
-    queryKey: ["audit"],
-    queryFn: () => fetchAuditLogs({ take: "100", skip: "0" }),
+  const [page, setPage] = useState(1);
+
+  const { data: auditLogs, isLoading: auditLogsLoading } = useQuery({
+    queryKey: ["audit", page],
+    queryFn: () => fetchAuditLogs({ page, itemsPerPage: 10 }),
   });
 
-  const columns = [
-    colHelper.accessor("createdAt", {
-      header: "Timestamp",
-      cell: (data) => (
-        <div className="flex items-center gap-2">
-          <Clock className="w-3 h-3 text-brand-muted" />
-          <span className="font-mono text-[10px]">
-            {formatDateTime(data.getValue())}
-          </span>
-        </div>
-      ),
-    }),
-    colHelper.accessor("action", {
-      header: "Action",
-      cell: (c) => (
-        <Badge variant="info" className="text-[9px] px-2">
-          {c.getValue()}
-        </Badge>
-      ),
-    }),
-    colHelper.accessor("entityType", {
-      header: "Entity",
-      cell: (c) => (
-        <div className="flex items-center gap-2">
-          <Fingerprint className="w-3 h-3 text-brand-accent/40" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+  const columns = useMemo(
+    () => [
+      colHelper.accessor("createdAt", {
+        header: "Timestamp",
+        cell: (data) => (
+          <div className="flex items-center gap-2">
+            <Clock className="w-3 h-3 text-brand-muted" />
+            <span className="font-mono text-[10px]">
+              {formatDateTime(data.getValue())}
+            </span>
+          </div>
+        ),
+      }),
+      colHelper.accessor("action", {
+        header: "Action",
+        cell: (c) => (
+          <Badge variant="info" className="text-[9px] px-2">
             {c.getValue()}
+          </Badge>
+        ),
+      }),
+      colHelper.accessor("entityType", {
+        header: "Entity",
+        cell: (c) => (
+          <div className="flex items-center gap-2">
+            <Fingerprint className="w-3 h-3 text-brand-accent/40" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+              {c.getValue()}
+            </span>
+          </div>
+        ),
+      }),
+      colHelper.accessor("entityId", {
+        header: "Resource ID",
+        cell: (c) => (
+          <span className="font-mono text-[10px] text-brand-muted">
+            {c.getValue() || "N/A"}
           </span>
-        </div>
-      ),
-    }),
-    colHelper.accessor("entityId", {
-      header: "Resource ID",
-      cell: (c) => (
-        <span className="font-mono text-[10px] text-brand-muted">
-          {c.getValue() || "N/A"}
-        </span>
-      ),
-    }),
-    colHelper.accessor("adminUserId", {
-      header: "Operator",
-      cell: (c) => (
-        <div className="flex items-center gap-2">
-          <User className="w-3 h-3 text-brand-muted" />
-          <span className="text-xs font-medium text-slate-300">
-            {c.getValue()}
-          </span>
-        </div>
-      ),
-    }),
-  ];
+        ),
+      }),
+      colHelper.accessor("adminUserId", {
+        header: "Operator",
+        cell: (c) => (
+          <div className="flex items-center gap-2">
+            <User className="w-3 h-3 text-brand-muted" />
+            <span className="text-xs font-medium text-slate-300">
+              {c.getValue()}
+            </span>
+          </div>
+        ),
+      }),
+    ],
+    [],
+  );
+
+  const tableData = useMemo(
+    () => (auditLogs?.items as Row[]) ?? [],
+    [auditLogs?.items],
+  );
 
   const table = useReactTable({
-    data: (q.data?.items as Row[]) ?? [],
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const handlePageClick = (e: { selected: number }) => {
+    setPage(e.selected + 1);
+  };
 
   return (
     <div className="space-y-8">
@@ -123,7 +139,7 @@ function AdminAuditPage() {
                     colSpan={columns.length}
                     className="px-6 py-20 text-center text-brand-muted italic"
                   >
-                    {q.isLoading
+                    {auditLogsLoading
                       ? "Loading secure logs..."
                       : "No administrative actions recorded yet."}
                   </td>
@@ -148,6 +164,11 @@ function AdminAuditPage() {
           </table>
         </div>
       </div>
+      <Pagination
+        totalPage={auditLogs?.pagination.totalPage || 0}
+        handlePageClick={handlePageClick}
+        currentPage={page}
+      />
     </div>
   );
 }
