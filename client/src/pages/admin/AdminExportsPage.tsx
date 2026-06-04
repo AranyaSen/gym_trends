@@ -1,5 +1,6 @@
 import { useState, ReactNode } from "react";
 import { downloadExport } from "../../services/admin/admin.services";
+import { API_ROUTES } from "../../constants/apiRoutes";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,25 +83,25 @@ function AdminExportsPage() {
           title="Members"
           description="Full list of registered members and details."
           icon={<Users className="w-6 h-6" />}
-          onClick={() => run("/exports/members", "members.csv")}
+          onClick={() => run(API_ROUTES.EXPORTS.MEMBERS, "members.csv")}
         />
         <ExportCard
           title="Attendance"
           description="Check-in/out logs for the selected range."
           icon={<Clock className="w-6 h-6" />}
-          onClick={() => run("/exports/attendance", "attendance.csv")}
+          onClick={() => run(API_ROUTES.EXPORTS.ATTENDANCE, "attendance.csv")}
         />
         <ExportCard
           title="Trainers"
           description="Trainer roster and linked member counts."
           icon={<Database className="w-6 h-6" />}
-          onClick={() => run("/exports/trainers", "trainers.csv")}
+          onClick={() => run(API_ROUTES.EXPORTS.TRAINERS, "trainers.csv")}
         />
         <ExportCard
           title="Audit Log"
           description="Immutable record of all admin actions."
           icon={<FileSpreadsheet className="w-6 h-6" />}
-          onClick={() => run("/exports/audit", "audit.csv")}
+          onClick={() => run(API_ROUTES.EXPORTS.AUDIT, "audit.csv")}
         />
       </div>
     </div>
