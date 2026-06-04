@@ -4,7 +4,7 @@ import { HomePage } from "../pages/HomePage";
 import { LoginPage } from "../pages/LoginPage";
 import { JoinRegisterPage } from "../pages/JoinRegisterPage";
 import { RequireAuth } from "../components/RequireAuth";
-import { AdminRegisterPage } from "../pages/admin/AdminRegisterPage";
+import { AdminRegisterPage } from "../pages/AdminRegisterPage";
 import { ROUTES } from "../constants/routes";
 import { lazy } from "react";
 

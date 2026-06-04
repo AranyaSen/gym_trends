@@ -1,11 +1,6 @@
 import { SelectHTMLAttributes, forwardRef, ReactNode } from "react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx } from "clsx";
 import { ChevronDown } from "lucide-react";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -24,10 +19,10 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
         <div className="relative">
           <select
-            className={cn(
+            className={clsx(
               "flex h-11 w-full appearance-none rounded-lg border border-brand-border/50 bg-brand-surface/50 px-3 py-2 text-sm text-white ring-offset-brand-bg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/30 focus-visible:border-brand-accent/50 disabled:cursor-not-allowed disabled:opacity-50",
               error && "border-red-500 focus-visible:ring-red-500/30",
-              className
+              className,
             )}
             ref={ref}
             {...props}
@@ -38,10 +33,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             <ChevronDown className="h-4 w-4" />
           </div>
         </div>
-        {error && <p className="text-xs font-medium text-red-500 ml-1">{error}</p>}
+        {error && (
+          <p className="text-xs font-medium text-red-500 ml-1">{error}</p>
+        )}
       </div>
     );
-  }
+  },
 );
 Select.displayName = "Select";
 
