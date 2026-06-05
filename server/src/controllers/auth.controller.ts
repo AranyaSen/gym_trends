@@ -17,7 +17,7 @@ const registerJoinSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
   name: Joi.string().min(1).required(),
-  phone: Joi.string().optional(),
+  phone: Joi.string().allow("").optional(),
   role: Joi.string().valid("TRAINER", "MEMBER").required(),
 });
 

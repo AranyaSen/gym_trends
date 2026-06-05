@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../components/ui/Toast";
 import { formatDate } from "../../lib/utils/dateTimeFormat";
+import { MemberShipType } from "../../services/auth/auth.types";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -69,7 +70,6 @@ function MemberHomePage() {
         description: "Membership Payment",
         order_id: orderData.orderId,
         handler: function () {
-          // Verify on backend
           queryClient.invalidateQueries({ queryKey: ["auth_me"] });
         },
         prefill: {
@@ -86,7 +86,7 @@ function MemberHomePage() {
     },
   });
 
-  if (isLoading) {
+  if (isLoading || plansLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-brand-bg relative overflow-hidden">
         <div className="w-16 h-16 border-4 border-brand-accent/20 border-t-brand-accent rounded-full animate-spin" />
@@ -94,7 +94,7 @@ function MemberHomePage() {
     );
   }
 
-  const { membership, pendingPlanRequest, gym } = data || {};
+  const { membership, pendingPlanRequest, gym } = data!;
   const isOnlinePaymentsEnabled = gym?.onlinePaymentsEnabled;
 
   return (
@@ -110,111 +110,69 @@ function MemberHomePage() {
         </header>
 
         {pendingPlanRequest ? (
-          <Card className="neon-border overflow-hidden">
-            <div className="h-2 w-full bg-yellow-500" />
-            <CardHeader>
-              <CardTitle>Pending Approval</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex justify-center">
-                <div className="w-24 h-24 rounded-full border-4 border-yellow-500/20 flex items-center justify-center relative">
-                  <div className="absolute inset-0 rounded-full border-t-4 border-yellow-500 animate-spin-slow" />
-                  <span className="text-3xl font-black text-yellow-500">
-                    ⏳
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm text-brand-muted px-4 leading-relaxed">
-                Your membership request is currently pending admin approval. You
-                will have access once approved.
-              </p>
-            </CardContent>
-          </Card>
+          <PendingPlanRequestComponent />
         ) : membership?.status === "ACTIVE" ? (
-          <Card className="neon-border overflow-hidden">
-            <div className="h-2 w-full bg-brand-accent" />
-            <CardHeader>
-              <CardTitle>Training Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 bg-brand-accent/10 border border-brand-accent/20 rounded-lg space-y-2">
-                <p className="text-lg font-bold text-white">
-                  {membership.plan.name}
-                </p>
-                <div className="flex justify-between text-xs text-brand-muted font-bold">
-                  <span>
-                    Price: ₹{(membership.plan.priceCents / 100).toFixed(2)}
-                  </span>
-                  <span>Expires: {formatDate(membership.endDate)}</span>
-                </div>
-              </div>
-              <p className="text-sm text-brand-muted px-4 leading-relaxed">
-                Your membership is active. Scan the QR code at the gym entrance
-                to log your session.
-              </p>
-              <Link to={ROUTES.MEMBER_SCAN} className="block">
-                <Button size="lg" className="w-full h-14 text-lg">
-                  Scan Attendance
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+          <ActiveMembershipDetails membership={membership} />
         ) : (
           <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-black text-white">Select a Plan</h2>
-              <p className="text-brand-muted text-sm mt-2">
-                Your membership is inactive. Choose a plan to continue.
-              </p>
-            </div>
-            {plansLoading ? (
-              <div className="w-8 h-8 border-2 border-brand-accent/20 border-t-brand-accent rounded-full animate-spin mx-auto" />
+            {plans && plans?.length > 0 ? (
+              <>
+                <div className="text-center">
+                  <h2 className="text-2xl font-black text-white">
+                    Select a Plan
+                  </h2>
+                  <p className="text-brand-muted text-sm mt-2">
+                    Your membership is inactive. Choose a plan to continue.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  {plans
+                    ?.filter((p) => p.isActive)
+                    .map((plan) => (
+                      <Card
+                        key={plan.id}
+                        className="border border-white/10 bg-black/40 backdrop-blur text-left overflow-hidden"
+                      >
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-lg font-bold text-white">
+                              {plan.name}
+                            </p>
+                            <p className="text-sm text-brand-muted">
+                              ₹{(plan.priceCents / 100).toFixed(2)} /{" "}
+                              {plan.durationDays} days
+                            </p>
+                          </div>
+                          <div>
+                            {isOnlinePaymentsEnabled ? (
+                              <Button
+                                size="sm"
+                                disabled={rzpMutation.isPending}
+                                onClick={() =>
+                                  rzpMutation.mutate({ planId: plan.id })
+                                }
+                              >
+                                Pay Online
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                disabled={requestMutation.isPending}
+                                onClick={() =>
+                                  requestMutation.mutate({ planId: plan.id })
+                                }
+                              >
+                                Request Admin
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              </>
             ) : (
-              <div className="space-y-4">
-                {plans
-                  ?.filter((p) => p.isActive)
-                  .map((plan) => (
-                    <Card
-                      key={plan.id}
-                      className="border border-white/10 bg-black/40 backdrop-blur text-left overflow-hidden"
-                    >
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div>
-                          <p className="text-lg font-bold text-white">
-                            {plan.name}
-                          </p>
-                          <p className="text-sm text-brand-muted">
-                            ₹{(plan.priceCents / 100).toFixed(2)} /{" "}
-                            {plan.durationDays} days
-                          </p>
-                        </div>
-                        <div>
-                          {isOnlinePaymentsEnabled ? (
-                            <Button
-                              size="sm"
-                              disabled={rzpMutation.isPending}
-                              onClick={() =>
-                                rzpMutation.mutate({ planId: plan.id })
-                              }
-                            >
-                              Pay Online
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              disabled={requestMutation.isPending}
-                              onClick={() =>
-                                requestMutation.mutate({ planId: plan.id })
-                              }
-                            >
-                              Request Admin
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
+              <RenderNoPlans />
             )}
           </div>
         )}
@@ -229,6 +187,80 @@ function MemberHomePage() {
         </footer>
       </div>
     </div>
+  );
+}
+
+function PendingPlanRequestComponent() {
+  return (
+    <Card className="neon-border overflow-hidden">
+      <div className="h-2 w-full bg-yellow-500" />
+      <CardHeader>
+        <CardTitle>Pending Approval</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex justify-center">
+          <div className="w-24 h-24 rounded-full border-4 border-yellow-500/20 flex items-center justify-center relative">
+            <div className="absolute inset-0 rounded-full border-t-4 border-yellow-500 animate-spin-slow" />
+            <span className="text-3xl font-black text-yellow-500">⏳</span>
+          </div>
+        </div>
+        <p className="text-sm text-brand-muted px-4 leading-relaxed">
+          Your membership request is currently pending admin approval. You will
+          have access once approved.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ActiveMembershipDetails({
+  membership,
+}: {
+  membership: MemberShipType;
+}) {
+  return (
+    <Card className="neon-border overflow-hidden">
+      <div className="h-2 w-full bg-brand-accent" />
+      <CardHeader>
+        <CardTitle>Training Status</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="p-4 bg-brand-accent/10 border border-brand-accent/20 rounded-lg space-y-2">
+          <p className="text-lg font-bold text-white">{membership.plan.name}</p>
+          <div className="flex justify-between text-xs text-brand-muted font-bold">
+            <span>Price: ₹{(membership.plan.priceCents / 100).toFixed(2)}</span>
+            <span>Expires: {formatDate(membership.endDate)}</span>
+          </div>
+        </div>
+        <p className="text-sm text-brand-muted px-4 leading-relaxed">
+          Your membership is active. Scan the QR code at the gym entrance to log
+          your session.
+        </p>
+        <Link to={ROUTES.MEMBER_SCAN} className="block">
+          <Button size="lg" className="w-full h-14 text-lg">
+            Scan Attendance
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RenderNoPlans() {
+  return (
+    <Card
+      key="no-plan"
+      className="border border-white/10 bg-black/40 backdrop-blur text-left overflow-hidden"
+    >
+      <CardContent className="p-4 flex items-center justify-between">
+        <div>
+          <p className="text-lg font-bold text-white">No Plans Available</p>
+          <p className="text-sm text-brand-muted">
+            Contact your gym admin for more information.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

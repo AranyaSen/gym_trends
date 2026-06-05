@@ -52,7 +52,11 @@ export function MemberRegisterPage() {
   };
 
   const registerMutation = useMutation({
-    mutationFn: (values: JoinRegisterFormValues) => registerMember(values),
+    mutationFn: (values: JoinRegisterFormValues) =>
+      registerMember({
+        ...values,
+        phone: values.phone ? values.phone : undefined,
+      }),
     onSuccess: (data) => {
       setToken(data.token);
       handleNavigation();

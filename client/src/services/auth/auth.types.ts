@@ -27,6 +27,38 @@ export type GymSettingsPayload = {
   longitude?: number;
 };
 
+type User = {
+  id: string;
+  role: UserRoles;
+  gymId: string;
+};
+
+type MembershipStatusType = "ACTIVE" | "EXPIRED" | "CANCELLED";
+
+type PlanType = {
+  id: string;
+  gymId: string;
+  name: string;
+  priceCents: number;
+  durationDays: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MemberShipType = {
+  id: string;
+  gymId: string;
+  userId: string;
+  planId: string;
+  startDate: string;
+  endDate: string;
+  status: MembershipStatusType;
+  createdAt: string;
+  updatedAt: string;
+  plan: PlanType;
+};
+
 // Payload Types
 export type LoginPayload = { email: string; password: string };
 
@@ -55,12 +87,12 @@ export type LoginResponse = {
 };
 
 export type FetchMemberResponse = {
-  user: unknown;
-  membership: any;
+  user: User;
+  membership: MemberShipType;
   gym: {
     onlinePaymentsEnabled: boolean;
     geoFencingEnabled: boolean;
-  } | null;
+  };
   pendingPlanRequest: boolean;
 };
 
