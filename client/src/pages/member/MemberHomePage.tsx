@@ -104,9 +104,6 @@ function MemberHomePage() {
       <div className="w-full max-w-md mx-auto space-y-8 relative z-10 text-center py-12">
         <header className="space-y-2">
           <h1 className="text-3xl font-black text-white">Member Dashboard</h1>
-          <p className="text-brand-muted font-bold uppercase tracking-[0.2em] text-[10px]">
-            Welcome to the powerhouse
-          </p>
         </header>
 
         {pendingPlanRequest ? (
