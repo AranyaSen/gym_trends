@@ -24,7 +24,7 @@ export function verifyAccessToken(access_token: string): TokenPayload {
 }
 
 export function verifyRefreshToken(refresh_token: string): TokenPayload {
-  return jwt.verify(refresh_token, env.accessTokenSecret) as TokenPayload;
+  return jwt.verify(refresh_token, env.refreshTokenSecret) as TokenPayload;
 }
 
 export type QrJwtPayload = {
