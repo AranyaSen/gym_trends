@@ -14,7 +14,7 @@ import * as auditLogsController from "../controllers/auditLogs.controller";
 import * as membershipLifecycleController from "../controllers/membershipLifecycle.controller";
 import * as userController from "../controllers/user.controller";
 import * as attendanceListController from "../controllers/attendanceList.controller";
-import { requireAuth, requireGym } from "../middleware/auth";
+import { authMiddleWare, requireGym } from "../middleware/auth";
 import { requireRoles } from "../middleware/rbac";
 import { Role } from "@prisma/client";
 
@@ -25,19 +25,19 @@ export const apiRouter = Router();
 apiRouter.post("/auth/register/admin", authController.registerAdmin);
 apiRouter.post("/auth/register", authController.registerMember);
 apiRouter.post("/auth/login", authController.login);
-apiRouter.get("/auth/me", requireAuth, authController.me);
+apiRouter.get("/auth/me", authMiddleWare, authController.me);
 
-apiRouter.get("/gym", requireAuth, requireGym, gymController.getMyGym);
+apiRouter.get("/gym", authMiddleWare, requireGym, gymController.getMyGym);
 apiRouter.patch(
   "/gym/setup",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   gymController.completeSetup,
 );
 apiRouter.patch(
   "/gym/settings",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   gymController.updateSettings,
@@ -45,17 +45,17 @@ apiRouter.patch(
 
 apiRouter.get(
   "/dashboard",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   dashboardController.getDashboard,
 );
 
-apiRouter.get("/plans", requireAuth, requireGym, planController.listPlans);
+apiRouter.get("/plans", authMiddleWare, requireGym, planController.listPlans);
 
 apiRouter.post(
   "/plans",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   planController.createPlan,
@@ -63,7 +63,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/plans/:id/deactivate",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   planController.deactivatePlan,
@@ -71,7 +71,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/plan-requests",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.MEMBER),
   planRequestController.createRequest,
@@ -79,7 +79,7 @@ apiRouter.post(
 
 apiRouter.get(
   "/plan-requests",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   planRequestController.listRequests,
@@ -87,7 +87,7 @@ apiRouter.get(
 
 apiRouter.post(
   "/plan-requests/:id/approve",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   planRequestController.approveRequest,
@@ -95,7 +95,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/plan-requests/:id/reject",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   planRequestController.rejectRequest,
@@ -103,7 +103,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/memberships/assign",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   membershipController.assign,
@@ -111,7 +111,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/memberships/renew",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   membershipLifecycleController.renew,
@@ -119,7 +119,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/memberships/switch",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   membershipLifecycleController.switchPlan,
@@ -127,7 +127,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/payments/offline",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   paymentController.offline,
@@ -135,7 +135,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/payments/razorpay/order",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.MEMBER),
   paymentController.razorpayOrder,
@@ -143,7 +143,7 @@ apiRouter.post(
 
 apiRouter.get(
   "/users/members",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   userController.listMembers,
@@ -151,7 +151,7 @@ apiRouter.get(
 
 apiRouter.get(
   "/trainers",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   trainerController.listTrainers,
@@ -159,7 +159,7 @@ apiRouter.get(
 
 apiRouter.post(
   "/trainer-members",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   trainerController.linkPair,
@@ -167,7 +167,7 @@ apiRouter.post(
 
 apiRouter.delete(
   "/trainer-members/:trainerId/:memberId",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   trainerController.unlinkPair,
@@ -175,7 +175,7 @@ apiRouter.delete(
 
 apiRouter.get(
   "/trainer/members",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.TRAINER),
   trainerController.myMembers,
@@ -183,7 +183,7 @@ apiRouter.get(
 
 apiRouter.get(
   "/attendance",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   attendanceListController.list,
@@ -191,7 +191,7 @@ apiRouter.get(
 
 apiRouter.post(
   "/attendance/manual",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   manualAttendanceController.createManual,
@@ -199,7 +199,7 @@ apiRouter.post(
 
 apiRouter.get(
   "/exports/members",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   exportController.members,
@@ -207,7 +207,7 @@ apiRouter.get(
 
 apiRouter.get(
   "/exports/attendance",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   exportController.attendance,
@@ -215,7 +215,7 @@ apiRouter.get(
 
 apiRouter.get(
   "/exports/trainers",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   exportController.trainers,
@@ -223,7 +223,7 @@ apiRouter.get(
 
 apiRouter.get(
   "/exports/audit",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   exportController.audit,
@@ -231,7 +231,7 @@ apiRouter.get(
 
 apiRouter.get(
   "/audit-logs",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   auditLogsController.list,
@@ -239,7 +239,7 @@ apiRouter.get(
 
 apiRouter.post(
   "/qr/token",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.ADMIN),
   qrController.mintQr,
@@ -247,7 +247,7 @@ apiRouter.post(
 
 apiRouter.post(
   "/attendance/scan",
-  requireAuth,
+  authMiddleWare,
   requireGym,
   requireRoles(Role.MEMBER, Role.TRAINER),
   attendanceController.scan,

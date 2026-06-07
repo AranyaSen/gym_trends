@@ -95,20 +95,22 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
 export async function me(req: Request, res: Response, next: NextFunction) {
   try {
-    const u = (req as Request & { user: AuthedUser }).user;
-    const { membership, gym, pendingPlanRequest } =
-      await authService.getUserDetails(u.id, u.gymId);
-    return success(res, {
-      user: { id: u.id, role: u.role, gymId: u.gymId },
-      membership,
-      gym: gym
-        ? {
-            onlinePaymentsEnabled: gym.onlinePaymentsEnabled,
-            geoFencingEnabled: gym.geoFencingEnabled,
-          }
-        : null,
-      pendingPlanRequest,
-    });
+    const user = req.user;
+    if (user) {
+      const { membership, gym, pendingPlanRequest } =
+        await authService.getUserDetails(user.id, user.gymId);
+      return success(res, {
+        user: { id: user.id, role: user.role, gymId: user.gymId },
+        membership,
+        gym: gym
+          ? {
+              onlinePaymentsEnabled: gym.onlinePaymentsEnabled,
+              geoFencingEnabled: gym.geoFencingEnabled,
+            }
+          : null,
+        pendingPlanRequest,
+      });
+    }
   } catch (e) {
     next(e);
   }
