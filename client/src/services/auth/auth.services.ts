@@ -86,3 +86,8 @@ export async function scanAttendance(body: ScanAttendancePayload) {
   );
   return data.data;
 }
+
+export async function logoutService() {
+  const { data } = await apiClient.post(API_ROUTES.AUTH.LOGOUT);
+  return data;
+}

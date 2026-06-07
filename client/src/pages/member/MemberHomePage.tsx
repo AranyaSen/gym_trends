@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
 import {
   Card,
@@ -8,7 +8,10 @@ import {
   CardTitle,
 } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import { fetchMemberPayload } from "../../services/auth/auth.services";
+import {
+  fetchMemberPayload,
+  logoutService,
+} from "../../services/auth/auth.services";
 import {
   createPlanRequest,
   createRazorpayOrder,
@@ -33,6 +36,7 @@ function loadRazorpayScript() {
 function MemberHomePage() {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const navigate = useNavigate();
 
   const logOut = useAuthStore((s) => s.setLogout);
 
@@ -86,6 +90,21 @@ function MemberHomePage() {
       rzp.open();
     },
   });
+
+  const logoutMutation = useMutation({
+    mutationFn: logoutService,
+    onSuccess: () => {
+      logOut();
+      navigate(ROUTES.HOME);
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   if (isLoading || plansLoading) {
     return (
@@ -178,7 +197,7 @@ function MemberHomePage() {
         <footer className="pt-4">
           <button
             className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
-            onClick={logOut}
+            onClick={handleLogout}
           >
             ← Sign Out
           </button>

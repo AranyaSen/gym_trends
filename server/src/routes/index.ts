@@ -27,7 +27,7 @@ apiRouter.post("/auth/register", authController.registerMember);
 apiRouter.post("/auth/login", authController.login);
 apiRouter.get("/auth/refresh", authController.refreshToken);
 apiRouter.get("/auth/me", authMiddleWare, authController.user);
-apiRouter.get("/auth/logout", authMiddleWare, authController.logout);
+apiRouter.post("/auth/logout", authMiddleWare, authController.logout);
 
 apiRouter.get("/gym", authMiddleWare, requireGym, gymController.getMyGym);
 apiRouter.patch(

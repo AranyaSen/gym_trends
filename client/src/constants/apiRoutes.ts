@@ -2,8 +2,10 @@ export const API_ROUTES = {
   AUTH: {
     LOGIN: "/auth/login",
     ME: "/auth/me",
+    REFRESH: "/auth/refresh",
     REGISTER_ADMIN: "/auth/register/admin",
     REGISTER_MEMBER: "/auth/register",
+    LOGOUT: "/auth/logout",
   },
   GYM: {
     GET: "/gym",
@@ -39,7 +41,8 @@ export const API_ROUTES = {
   TRAINERS: {
     LIST: "/trainers",
     LINK: "/trainer-members",
-    UNLINK: (trainerId: string, memberId: string) => `/trainer-members/${trainerId}/${memberId}` as const,
+    UNLINK: (trainerId: string, memberId: string) =>
+      `/trainer-members/${trainerId}/${memberId}` as const,
     MY_MEMBERS: "/trainer/members",
   },
   ATTENDANCE: {

@@ -3,6 +3,8 @@ import { ROUTES } from "../constants/routes";
 import { Button } from "./ui/Button";
 import { Settings } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import { useMutation } from "@tanstack/react-query";
+import { logoutService } from "../services/auth/auth.services";
 
 const links: { to: string; label: string }[] = [
   { to: ROUTES.ADMIN, label: "Overview" },
@@ -20,6 +22,18 @@ function AdminLayout() {
   const location = useLocation();
 
   const logOut = useAuthStore((s) => s.setLogout);
+
+  const logoutMutation = useMutation({
+    mutationFn: logoutService,
+    onSuccess: () => {
+      logOut();
+      navigate(ROUTES.HOME);
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <div className="min-h-screen bg-brand-bg relative flex flex-col">
@@ -76,10 +90,7 @@ function AdminLayout() {
               variant="outline"
               size="sm"
               className="text-[10px] h-8 flex justify-end"
-              onClick={() => {
-                logOut();
-                navigate(ROUTES.HOME);
-              }}
+              onClick={handleLogout}
             >
               Sign Out
             </Button>
