@@ -5,20 +5,22 @@ import { env } from "./config/env";
 import { apiRouter } from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { razorpayWebhook } from "./webhooks/razorpay.webhook";
+import cookieParser from "cookie-parser";
 
 export function createApp() {
   const app = express();
+  app.use(cookieParser());
   app.use(helmet());
   app.use(
     cors({
       origin: env.corsOrigin,
       credentials: true,
-    })
+    }),
   );
   app.post(
     "/api/payments/webhooks/razorpay",
     express.raw({ type: "application/json" }),
-    razorpayWebhook
+    razorpayWebhook,
   );
   app.use(express.json({ limit: "1mb" }));
 

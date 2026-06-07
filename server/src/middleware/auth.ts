@@ -15,12 +15,12 @@ export function authMiddleWare(
   next: NextFunction,
 ) {
   const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
-  if (!authHeader?.startsWith("Bearer ") || !token) {
+  const access_token = authHeader?.split(" ")[1];
+  if (!authHeader?.startsWith("Bearer ") || !access_token) {
     return fail(res, "Unauthorized", 401);
   }
   try {
-    const decoded = verifyAccessToken(token);
+    const decoded = verifyAccessToken(access_token);
     req.user = {
       id: decoded.sub,
       role: decoded.role as Role,

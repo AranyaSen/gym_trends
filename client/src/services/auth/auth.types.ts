@@ -80,7 +80,7 @@ export type RegisterMemberPayload = {
 
 // Response Types
 export type UserLoginResponse = {
-  token: string;
+  access_token: string;
   user: UserType;
   membership: MemberShipType;
   gym: Gym;
@@ -97,7 +97,7 @@ export type FetchMemberResponse = {
   pendingPlanRequest: boolean;
 };
 
-export type RegisterResponse = { token: string; user: UserType; gym: Gym };
+export type RegisterResponse = { user: UserType; gym: Gym };
 
 export type FetchGymResponse = { gym: GymRecord };
 

@@ -1,7 +1,11 @@
 import bcrypt from "bcryptjs";
 import { Prisma, Role } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { signAccessToken } from "../utils/jwt";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} from "../utils/jwt";
 import { generateJoinCode } from "../utils/joinCode";
 
 const SALT_ROUNDS = 10;
@@ -97,11 +101,13 @@ export async function login(input: { email: string; password: string }) {
   const ok = await bcrypt.compare(input.password, user.passwordHash);
   if (!ok) throw new Error("Invalid credentials");
 
-  const token = signAccessToken({
+  const tokenPayload = {
     sub: user.id,
     role: user.role,
     gymId: user.gymId,
-  });
+  };
+  const access_token = signAccessToken(tokenPayload);
+  const refresh_token = signRefreshToken(tokenPayload);
 
   const membership = await prisma.membership.findFirst({
     where: { userId: user.id, gymId: user.gymId! },
@@ -113,7 +119,26 @@ export async function login(input: { email: string; password: string }) {
     ? await prisma.gym.findUnique({ where: { id: user.gymId } })
     : null;
 
-  return { user, token, membership, gym };
+  return { user, access_token, refresh_token, membership, gym };
+}
+
+export async function refreshTokenService(refreshToken: string) {
+  const decodedRefreshToken = verifyRefreshToken(refreshToken);
+  const user = await prisma.user.findUnique({
+    where: { id: decodedRefreshToken.sub },
+  });
+  if (!user) {
+    throw new Error("User not found!");
+  }
+  const tokenPayload = {
+    sub: user.id,
+    role: user.role,
+    gymId: user.gymId,
+  };
+  const access_token = signAccessToken(tokenPayload);
+  const refresh_token = signRefreshToken(tokenPayload);
+
+  return { access_token, refresh_token };
 }
 
 export async function getUserDetails(userId: string, gymId: string | null) {

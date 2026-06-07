@@ -1,20 +1,30 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 
-export type AccessPayload = {
+export type TokenPayload = {
   sub: string;
   role: string;
   gymId: string | null;
 };
 
-export function signAccessToken(payload: AccessPayload) {
-  return jwt.sign(payload, env.jwtSecret, {
-    expiresIn: env.jwtExpiresIn as jwt.SignOptions["expiresIn"],
+export function signAccessToken(payload: TokenPayload) {
+  return jwt.sign(payload, env.accessTokenSecret, {
+    expiresIn: env.accessTokenExpiresIn as jwt.SignOptions["expiresIn"],
   });
 }
 
-export function verifyAccessToken(token: string): AccessPayload {
-  return jwt.verify(token, env.jwtSecret) as AccessPayload;
+export function signRefreshToken(payload: TokenPayload) {
+  return jwt.sign(payload, env.refreshTokenSecret, {
+    expiresIn: env.refreshTokenExpiresIn as jwt.SignOptions["expiresIn"],
+  });
+}
+
+export function verifyAccessToken(access_token: string): TokenPayload {
+  return jwt.verify(access_token, env.accessTokenSecret) as TokenPayload;
+}
+
+export function verifyRefreshToken(refresh_token: string): TokenPayload {
+  return jwt.verify(refresh_token, env.accessTokenSecret) as TokenPayload;
 }
 
 export type QrJwtPayload = {
@@ -24,9 +34,9 @@ export type QrJwtPayload = {
 };
 
 export function signQrToken(payload: QrJwtPayload, expiresInSec: number) {
-  return jwt.sign(payload, env.jwtSecret, { expiresIn: expiresInSec });
+  return jwt.sign(payload, env.accessTokenSecret, { expiresIn: expiresInSec });
 }
 
 export function verifyQrToken(token: string): QrJwtPayload {
-  return jwt.verify(token, env.jwtSecret) as QrJwtPayload;
+  return jwt.verify(token, env.accessTokenSecret) as QrJwtPayload;
 }

@@ -23,8 +23,10 @@ services:
       - "4000:4000"
     environment:
       DATABASE_URL: postgresql://gymtrac:gymtrac@postgres:5432/gymtrac?schema=public
-      JWT_SECRET: ${JWT_SECRET:-dev-change-me-in-production}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev-change-me-in-production}
+      ACCESS_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-15m}
+      REFRESH_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev-change-me-in-production}
+      REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
       PORT: 4000
       NODE_ENV: development
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
