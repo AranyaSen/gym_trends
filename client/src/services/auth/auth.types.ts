@@ -113,3 +113,7 @@ export type QrTokenResponse = {
   token: string;
   expiresAt: string;
 };
+
+export type RefreshResponse = {
+  access_token: string;
+};

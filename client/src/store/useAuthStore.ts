@@ -8,6 +8,7 @@ type AuthStoreTypes = {
   setIsAuthenticated: (data: boolean) => void;
   setUserDetails: (data: UserLoginResponse) => void;
   setLogout: () => void;
+  setAccessToken: (data: string) => void;
 };
 
 export const useAuthStore = create<AuthStoreTypes>()(
@@ -24,6 +25,12 @@ export const useAuthStore = create<AuthStoreTypes>()(
         });
         localStorage.removeItem("auth-store");
       },
+      setAccessToken: (data: string) =>
+        set((state) => ({
+          userDetails: state.userDetails
+            ? { ...state.userDetails, access_token: data }
+            : null,
+        })),
     }),
     { name: "auth-store" },
   ),

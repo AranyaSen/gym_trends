@@ -1,4 +1,4 @@
-import { apiClient } from "../apiClient";
+import { apiClient, refreshClient } from "../apiClient";
 import { ApiResponse } from "../../types/api";
 import { API_ROUTES } from "../../constants/apiRoutes";
 import {
@@ -14,6 +14,7 @@ import {
   RegisterMemberPayload,
   RegisterResponse,
   ScanAttendancePayload,
+  RefreshResponse,
 } from "./auth.types";
 export type { GymRecord } from "./auth.types";
 
@@ -87,7 +88,16 @@ export async function scanAttendance(body: ScanAttendancePayload) {
   return data.data;
 }
 
+export async function refreshTokenService() {
+  const { data } = await refreshClient.get<ApiResponse<RefreshResponse>>(
+    API_ROUTES.AUTH.REFRESH,
+  );
+  return data;
+}
+
 export async function logoutService() {
-  const { data } = await apiClient.post(API_ROUTES.AUTH.LOGOUT);
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    API_ROUTES.AUTH.LOGOUT,
+  );
   return data;
 }
