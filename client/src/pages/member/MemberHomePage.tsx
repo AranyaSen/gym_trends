@@ -14,10 +14,10 @@ import {
   createRazorpayOrder,
   fetchPlans,
 } from "../../services/planRequest/planRequest.services";
-import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../components/ui/Toast";
 import { formatDate } from "../../lib/utils/dateTimeFormat";
 import { MemberShipType } from "../../services/auth/auth.types";
+import { useAuthStore } from "../../store/useAuthStore";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -31,9 +31,10 @@ function loadRazorpayScript() {
 }
 
 function MemberHomePage() {
-  const { logout } = useAuth();
   const queryClient = useQueryClient();
   const toast = useToast();
+
+  const logOut = useAuthStore((s) => s.setLogout);
 
   const { data, isLoading } = useQuery({
     queryKey: ["auth_me"],
@@ -177,7 +178,7 @@ function MemberHomePage() {
         <footer className="pt-4">
           <button
             className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors"
-            onClick={logout}
+            onClick={logOut}
           >
             ← Sign Out
           </button>
@@ -219,7 +220,7 @@ function ActiveMembershipDetails({
     <Card className="neon-border overflow-hidden">
       <div className="h-2 w-full bg-brand-accent" />
       <CardHeader>
-        <CardTitle>Training Status</CardTitle>
+        <CardTitle>Membership Status</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="p-4 bg-brand-accent/10 border border-brand-accent/20 rounded-lg space-y-2">

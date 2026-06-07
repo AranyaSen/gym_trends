@@ -1,8 +1,8 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
-import { useAuth } from "../hooks/useAuth";
 import { Button } from "./ui/Button";
 import { Settings } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 const links: { to: string; label: string }[] = [
   { to: ROUTES.ADMIN, label: "Overview" },
@@ -16,9 +16,10 @@ const links: { to: string; label: string }[] = [
 ];
 
 function AdminLayout() {
-  const { logout } = useAuth();
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
+
+  const logOut = useAuthStore((s) => s.setLogout);
 
   return (
     <div className="min-h-screen bg-brand-bg relative flex flex-col">
@@ -60,7 +61,7 @@ function AdminLayout() {
             <div
               className="flex items-center cursor-pointer"
               onClick={() => {
-                nav(ROUTES.ADMIN_PREFERENCES);
+                navigate(ROUTES.ADMIN_PREFERENCES);
               }}
             >
               <Settings
@@ -76,8 +77,8 @@ function AdminLayout() {
               size="sm"
               className="text-[10px] h-8 flex justify-end"
               onClick={() => {
-                logout();
-                nav(ROUTES.HOME);
+                logOut();
+                navigate(ROUTES.HOME);
               }}
             >
               Sign Out

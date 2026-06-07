@@ -1,4 +1,4 @@
-import { UserRoles } from "../../types/common";
+import { Gym, UserRoles, UserType } from "../../types/common";
 
 export type GymRecord = {
   id: string;
@@ -79,11 +79,12 @@ export type RegisterMemberPayload = {
 };
 
 // Response Types
-export type LoginResponse = {
+export type UserLoginResponse = {
   token: string;
-  user: unknown;
-  membership: unknown;
-  gym: unknown;
+  user: UserType;
+  membership: MemberShipType;
+  gym: Gym;
+  pendingPlanRequest: boolean;
 };
 
 export type FetchMemberResponse = {
@@ -96,7 +97,7 @@ export type FetchMemberResponse = {
   pendingPlanRequest: boolean;
 };
 
-export type RegisterResponse = { token: string; user: unknown; gym: unknown };
+export type RegisterResponse = { token: string; user: UserType; gym: Gym };
 
 export type FetchGymResponse = { gym: GymRecord };
 

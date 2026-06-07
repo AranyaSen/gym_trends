@@ -7,6 +7,8 @@ import { RequireAuth } from "../components/RequireAuth";
 import { AdminRegisterPage } from "../pages/AdminRegisterPage";
 import { ROUTES } from "../constants/routes";
 import { lazy } from "react";
+import { UnprotectedRoute } from "../components/UnprotectedRoute";
+import { NotFound } from "../pages/NotFound";
 
 const AdminLayout = lazy(() => import("../components/AdminLayout"));
 const AdminDashboardPage = lazy(
@@ -37,19 +39,35 @@ export const router = createBrowserRouter([
     children: [
       {
         path: ROUTES.HOME,
-        element: <HomePage />,
+        element: (
+          <UnprotectedRoute>
+            <HomePage />
+          </UnprotectedRoute>
+        ),
       },
       {
         path: ROUTES.ADMIN_REGISTER,
-        element: <AdminRegisterPage />,
+        element: (
+          <UnprotectedRoute>
+            <AdminRegisterPage />
+          </UnprotectedRoute>
+        ),
       },
       {
         path: ROUTES.LOGIN,
-        element: <LoginPage />,
+        element: (
+          <UnprotectedRoute>
+            <LoginPage />
+          </UnprotectedRoute>
+        ),
       },
       {
         path: ROUTES.REGISTER,
-        element: <MemberRegisterPage />,
+        element: (
+          <UnprotectedRoute>
+            <MemberRegisterPage />
+          </UnprotectedRoute>
+        ),
       },
       {
         path: ROUTES.ADMIN,
@@ -124,6 +142,10 @@ export const router = createBrowserRouter([
             <MemberScanPage />
           </RequireAuth>
         ),
+      },
+      {
+        path: "*",
+        element: <NotFound />,
       },
     ],
   },

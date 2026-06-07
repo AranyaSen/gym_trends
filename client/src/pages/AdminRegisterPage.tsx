@@ -2,7 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
-import { useAuth } from "../hooks/useAuth";
 import { registerAdmin } from "../services/auth/auth.services";
 import { Button } from "../components/ui/Button";
 import {
@@ -21,8 +20,7 @@ import {
 } from "../schemas/auth";
 
 export function AdminRegisterPage() {
-  const nav = useNavigate();
-  const { setToken } = useAuth();
+  const navigate = useNavigate();
   const [err, setErr] = useState<string | null>(null);
 
   const {
@@ -40,11 +38,10 @@ export function AdminRegisterPage() {
     mode: "onChange",
   });
 
-  const m = useMutation({
+  const registerMutation = useMutation({
     mutationFn: (values: AdminRegisterFormValues) => registerAdmin(values),
-    onSuccess: (d) => {
-      setToken(d.token);
-      nav(ROUTES.ADMIN_SETUP, { replace: true });
+    onSuccess: () => {
+      navigate(ROUTES.LOGIN, { replace: true });
     },
     onError: (e: unknown) => {
       const msg =
@@ -60,7 +57,7 @@ export function AdminRegisterPage() {
 
   const onSubmit = (values: AdminRegisterFormValues) => {
     setErr(null);
-    m.mutate(values);
+    registerMutation.mutate(values);
   };
 
   return (
@@ -116,10 +113,10 @@ export function AdminRegisterPage() {
 
               <Button
                 type="submit"
-                disabled={m.isPending || !isValid}
+                disabled={registerMutation.isPending || !isValid}
                 className="w-full mt-2"
               >
-                {m.isPending ? "Creating…" : "Create Gym"}
+                {registerMutation.isPending ? "Creating…" : "Create Gym"}
               </Button>
             </form>
           </CardContent>

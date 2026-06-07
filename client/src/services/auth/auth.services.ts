@@ -7,7 +7,7 @@ import {
   GymSettingsPayload,
   GymSetupResponse,
   LoginPayload,
-  LoginResponse,
+  UserLoginResponse,
   QrTokenPayload,
   QrTokenResponse,
   RegisterAdminPayload,
@@ -17,9 +17,8 @@ import {
 } from "./auth.types";
 export type { GymRecord } from "./auth.types";
 
-
 export async function login(payload: LoginPayload) {
-  const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
+  const { data } = await apiClient.post<ApiResponse<UserLoginResponse>>(
     API_ROUTES.AUTH.LOGIN,
     payload,
   );
@@ -27,8 +26,9 @@ export async function login(payload: LoginPayload) {
 }
 
 export async function fetchMemberPayload() {
-  const { data } =
-    await apiClient.get<ApiResponse<FetchMemberResponse>>(API_ROUTES.AUTH.ME);
+  const { data } = await apiClient.get<ApiResponse<FetchMemberResponse>>(
+    API_ROUTES.AUTH.ME,
+  );
   return data.data;
 }
 
@@ -49,7 +49,9 @@ export async function registerMember(body: RegisterMemberPayload) {
 }
 
 export async function fetchMyGym() {
-  const { data } = await apiClient.get<ApiResponse<FetchGymResponse>>(API_ROUTES.GYM.GET);
+  const { data } = await apiClient.get<ApiResponse<FetchGymResponse>>(
+    API_ROUTES.GYM.GET,
+  );
   return data.data.gym;
 }
 

@@ -17,5 +17,3 @@ export const ROUTES = {
   MEMBER_SCAN: "/member/scan",
   TRAINER: "/trainer",
 } as const;
-
-export const STORAGE_TOKEN_KEY = "gymtrac_token";
