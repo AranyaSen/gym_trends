@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
-import { Role } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 import * as authService from "../services/auth.service";
 import { success, fail } from "../utils/response";
-import type { AuthedUser } from "../middleware/auth";
 
 const registerAdminSchema = Joi.object({
   email: Joi.string().email().required(),
@@ -34,11 +33,10 @@ export async function registerAdmin(
   try {
     const { error, value } = registerAdminSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
-    const out = await authService.registerAdmin(value);
+    const result = await authService.registerAdmin(value);
     return success(res, {
-      token: out.token,
-      user: sanitizeUser(out.user),
-      gym: out.gym,
+      user: sanitizeUser(result?.user as User),
+      gym: result?.gym,
     });
   } catch (e) {
     next(e);
@@ -53,14 +51,13 @@ export async function registerMember(
   try {
     const { error, value } = registerJoinSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
-    const out = await authService.registerWithJoinCode({
+    const result = await authService.registerWithJoinCode({
       ...value,
       role: value.role as Role,
     });
     return success(res, {
-      token: out.token,
-      user: sanitizeUser(out.user),
-      gym: out.gym,
+      user: sanitizeUser(result.user),
+      gym: result.gym,
     });
   } catch (e) {
     next(e);
@@ -93,7 +90,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function me(req: Request, res: Response, next: NextFunction) {
+export async function user(req: Request, res: Response, next: NextFunction) {
   try {
     const user = req.user;
     if (user) {

@@ -25,7 +25,7 @@ export const apiRouter = Router();
 apiRouter.post("/auth/register/admin", authController.registerAdmin);
 apiRouter.post("/auth/register", authController.registerMember);
 apiRouter.post("/auth/login", authController.login);
-apiRouter.get("/auth/me", authMiddleWare, authController.me);
+apiRouter.get("/auth/me", authMiddleWare, authController.user);
 
 apiRouter.get("/gym", authMiddleWare, requireGym, gymController.getMyGym);
 apiRouter.patch(
