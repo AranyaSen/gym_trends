@@ -85,6 +85,7 @@ export type UserLoginResponse = {
   membership: MemberShipType;
   gym: Gym;
   pendingPlanRequest: boolean;
+  expiresAt: Date;
 };
 
 export type FetchMemberResponse = {

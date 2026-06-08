@@ -3,7 +3,6 @@ import Joi from "joi";
 import { Role, User } from "@prisma/client";
 import * as authService from "../services/auth.service";
 import { success, fail } from "../utils/response";
-import { verifyRefreshToken } from "../utils/jwt";
 import { env } from "../config/env";
 
 const registerAdminSchema = Joi.object({
@@ -92,6 +91,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
           }
         : null,
       pendingPlanRequest,
+      expiresAt: result.expiresAt,
     });
   } catch (e) {
     next(e);

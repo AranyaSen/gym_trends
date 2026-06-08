@@ -9,6 +9,7 @@ type AuthStoreTypes = {
   setUserDetails: (data: UserLoginResponse) => void;
   setLogout: () => void;
   setAccessToken: (data: string) => void;
+  setExpiryTime: (data: Date) => void;
 };
 
 export const useAuthStore = create<AuthStoreTypes>()(
@@ -29,6 +30,12 @@ export const useAuthStore = create<AuthStoreTypes>()(
         set((state) => ({
           userDetails: state.userDetails
             ? { ...state.userDetails, access_token: data }
+            : null,
+        })),
+      setExpiryTime: (data: Date) =>
+        set((state) => ({
+          userDetails: state.userDetails
+            ? { ...state.userDetails, expiresAt: data }
             : null,
         })),
     }),

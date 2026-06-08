@@ -9,6 +9,7 @@ import {
 import { generateJoinCode } from "../utils/joinCode";
 
 const SALT_ROUNDS = 10;
+const ACCESS_TOKEN_EXPIRES_IN = 15 * 60 * 1000;
 
 export async function registerAdmin(input: {
   email: string;
@@ -108,6 +109,7 @@ export async function login(input: { email: string; password: string }) {
   };
   const access_token = signAccessToken(tokenPayload);
   const refresh_token = signRefreshToken(tokenPayload);
+  const expiresAt = Date.now() + ACCESS_TOKEN_EXPIRES_IN;
 
   const membership = await prisma.membership.findFirst({
     where: { userId: user.id, gymId: user.gymId! },
@@ -119,7 +121,7 @@ export async function login(input: { email: string; password: string }) {
     ? await prisma.gym.findUnique({ where: { id: user.gymId } })
     : null;
 
-  return { user, access_token, refresh_token, membership, gym };
+  return { user, access_token, refresh_token, membership, gym, expiresAt };
 }
 
 export async function refreshTokenService(refreshToken: string) {
