@@ -12,6 +12,7 @@ export const apiClient = axios.create({
 export const refreshClient = axios.create({
   baseURL,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
 apiClient.interceptors.request.use((config) => {

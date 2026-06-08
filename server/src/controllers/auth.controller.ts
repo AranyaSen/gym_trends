@@ -77,7 +77,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     res.cookie("refresh_token", result?.refresh_token, {
       httpOnly: true,
       secure: false, // will handle using env later
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return success(res, {
@@ -111,7 +111,7 @@ export async function refreshToken(
     res.cookie("refresh_token", result.refresh_token, {
       httpOnly: true,
       secure: false, //will handle using env later
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return success(res, {
