@@ -4,6 +4,7 @@ import { Role, User } from "@prisma/client";
 import * as authService from "../services/auth.service";
 import { success, fail } from "../utils/response";
 import { verifyRefreshToken } from "../utils/jwt";
+import { env } from "../config/env";
 
 const registerAdminSchema = Joi.object({
   email: Joi.string().email().required(),
@@ -76,7 +77,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     );
     res.cookie("refresh_token", result?.refresh_token, {
       httpOnly: true,
-      secure: false, // will handle using env later
+      secure: env.nodeEnv === "developement" ? false : true,
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -110,7 +111,7 @@ export async function refreshToken(
     const result = await authService.refreshTokenService(refresh_token);
     res.cookie("refresh_token", result.refresh_token, {
       httpOnly: true,
-      secure: false, //will handle using env later
+      secure: env.nodeEnv === "developement" ? false : true,
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
