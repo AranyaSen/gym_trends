@@ -2,7 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
-import { useAuth } from "../hooks/useAuth";
 import { registerMember } from "../services/auth/auth.services";
 import { Button } from "../components/ui/Button";
 import {
@@ -22,13 +21,11 @@ import {
 
 export function MemberRegisterPage() {
   const navigate = useNavigate();
-  const { setToken } = useAuth();
   const [err, setErr] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<JoinRegisterFormValues>({
     resolver: zodResolver(joinRegisterSchema),
@@ -43,19 +40,14 @@ export function MemberRegisterPage() {
     },
   });
 
-  const selectedRole = watch("role");
-
-  const handleNavigation = () => {
-    navigate(selectedRole === "TRAINER" ? ROUTES.TRAINER : ROUTES.MEMBER, {
-      replace: true,
-    });
-  };
-
   const registerMutation = useMutation({
-    mutationFn: (values: JoinRegisterFormValues) => registerMember(values),
-    onSuccess: (data) => {
-      setToken(data.token);
-      handleNavigation();
+    mutationFn: (values: JoinRegisterFormValues) =>
+      registerMember({
+        ...values,
+        phone: values.phone ? values.phone : undefined,
+      }),
+    onSuccess: () => {
+      navigate(ROUTES.LOGIN, { replace: true });
     },
     onError: (e: unknown) => {
       const msg =

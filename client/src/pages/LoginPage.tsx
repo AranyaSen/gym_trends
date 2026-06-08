@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "../constants/routes";
-import { useAuth } from "../hooks/useAuth";
 import { login } from "../services/auth/auth.services";
 import { Button } from "../components/ui/Button";
 import {
@@ -14,6 +13,7 @@ import {
 } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { loginSchema, type LoginFormValues } from "../schemas/auth";
+import { useAuthStore } from "../store/useAuthStore";
 
 function homeForRole(role: string) {
   if (role === "ADMIN") return ROUTES.ADMIN;
@@ -22,8 +22,10 @@ function homeForRole(role: string) {
 }
 
 export function LoginPage() {
-  const nav = useNavigate();
-  const { setToken } = useAuth();
+  const navigate = useNavigate();
+
+  const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
+  const setUserDetails = useAuthStore((s) => s.setUserDetails);
 
   const {
     register,
@@ -40,12 +42,12 @@ export function LoginPage() {
     },
   });
 
-  const m = useMutation({
+  const loginMutation = useMutation({
     mutationFn: (values: LoginFormValues) => login(values),
-    onSuccess: (d) => {
-      setToken(d.token);
-      const role = (d.user as { role: string }).role;
-      nav(homeForRole(role), { replace: true });
+    onSuccess: (data) => {
+      setIsAuthenticated(true);
+      setUserDetails(data);
+      navigate(homeForRole(data?.user?.role), { replace: true });
     },
     onError: (e: unknown) => {
       const msg =
@@ -71,7 +73,7 @@ export function LoginPage() {
   });
 
   const onSubmit = (values: LoginFormValues) => {
-    m.mutate(values);
+    loginMutation.mutate(values);
   };
 
   return (
@@ -131,10 +133,10 @@ export function LoginPage() {
 
               <Button
                 type="submit"
-                disabled={m.isPending || !isValid}
+                disabled={loginMutation.isPending || !isValid}
                 className="w-full"
               >
-                {m.isPending ? "Signing in…" : "Access Gym"}
+                {loginMutation.isPending ? "Signing in…" : "Access Gym"}
               </Button>
             </form>
           </CardContent>

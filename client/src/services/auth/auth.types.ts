@@ -1,4 +1,4 @@
-import { UserRoles } from "../../types/common";
+import { Gym, UserRoles, UserType } from "../../types/common";
 
 export type GymRecord = {
   id: string;
@@ -27,6 +27,38 @@ export type GymSettingsPayload = {
   longitude?: number;
 };
 
+type User = {
+  id: string;
+  role: UserRoles;
+  gymId: string;
+};
+
+type MembershipStatusType = "ACTIVE" | "EXPIRED" | "CANCELLED";
+
+type PlanType = {
+  id: string;
+  gymId: string;
+  name: string;
+  priceCents: number;
+  durationDays: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MemberShipType = {
+  id: string;
+  gymId: string;
+  userId: string;
+  planId: string;
+  startDate: string;
+  endDate: string;
+  status: MembershipStatusType;
+  createdAt: string;
+  updatedAt: string;
+  plan: PlanType;
+};
+
 // Payload Types
 export type LoginPayload = { email: string; password: string };
 
@@ -47,24 +79,25 @@ export type RegisterMemberPayload = {
 };
 
 // Response Types
-export type LoginResponse = {
-  token: string;
-  user: unknown;
-  membership: unknown;
-  gym: unknown;
-};
-
-export type FetchMemberResponse = {
-  user: unknown;
-  membership: any;
-  gym: {
-    onlinePaymentsEnabled: boolean;
-    geoFencingEnabled: boolean;
-  } | null;
+export type UserLoginResponse = {
+  access_token: string;
+  user: UserType;
+  membership: MemberShipType;
+  gym: Gym;
   pendingPlanRequest: boolean;
 };
 
-export type RegisterResponse = { token: string; user: unknown; gym: unknown };
+export type FetchMemberResponse = {
+  user: User;
+  membership: MemberShipType;
+  gym: {
+    onlinePaymentsEnabled: boolean;
+    geoFencingEnabled: boolean;
+  };
+  pendingPlanRequest: boolean;
+};
+
+export type RegisterResponse = { user: UserType; gym: Gym };
 
 export type FetchGymResponse = { gym: GymRecord };
 
@@ -79,4 +112,8 @@ export type GymSetupResponse = {
 export type QrTokenResponse = {
   token: string;
   expiresAt: string;
+};
+
+export type RefreshResponse = {
+  access_token: string;
 };

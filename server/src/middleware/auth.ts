@@ -9,17 +9,22 @@ export type AuthedUser = {
   gymId: string | null;
 };
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const h = req.headers.authorization;
-  if (!h?.startsWith("Bearer ")) {
+export function authMiddleWare(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const authHeader = req.headers.authorization;
+  const access_token = authHeader?.split(" ")[1];
+  if (!authHeader?.startsWith("Bearer ") || !access_token) {
     return fail(res, "Unauthorized", 401);
   }
   try {
-    const p = verifyAccessToken(h.slice(7));
-    (req as Request & { user: AuthedUser }).user = {
-      id: p.sub,
-      role: p.role as Role,
-      gymId: p.gymId,
+    const decoded = verifyAccessToken(access_token);
+    req.user = {
+      id: decoded.sub,
+      role: decoded.role as Role,
+      gymId: decoded.gymId as string,
     };
     return next();
   } catch {
@@ -28,8 +33,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 export function requireGym(req: Request, res: Response, next: NextFunction) {
-  const u = (req as Request & { user?: AuthedUser }).user;
-  if (!u?.gymId) {
+  const user = req.user;
+  if (!user?.gymId) {
     return fail(res, "Gym context required", 400);
   }
   return next();

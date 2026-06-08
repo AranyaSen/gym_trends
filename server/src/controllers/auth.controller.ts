@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
-import { Role } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 import * as authService from "../services/auth.service";
 import { success, fail } from "../utils/response";
-import type { AuthedUser } from "../middleware/auth";
+import { verifyRefreshToken } from "../utils/jwt";
 
 const registerAdminSchema = Joi.object({
   email: Joi.string().email().required(),
@@ -17,7 +17,7 @@ const registerJoinSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
   name: Joi.string().min(1).required(),
-  phone: Joi.string().optional(),
+  phone: Joi.string().allow("").optional(),
   role: Joi.string().valid("TRAINER", "MEMBER").required(),
 });
 
@@ -34,11 +34,10 @@ export async function registerAdmin(
   try {
     const { error, value } = registerAdminSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
-    const out = await authService.registerAdmin(value);
+    const result = await authService.registerAdmin(value);
     return success(res, {
-      token: out.token,
-      user: sanitizeUser(out.user),
-      gym: out.gym,
+      user: sanitizeUser(result?.user as User),
+      gym: result?.gym,
     });
   } catch (e) {
     next(e);
@@ -53,14 +52,13 @@ export async function registerMember(
   try {
     const { error, value } = registerJoinSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
-    const out = await authService.registerWithJoinCode({
+    const result = await authService.registerWithJoinCode({
       ...value,
       role: value.role as Role,
     });
     return success(res, {
-      token: out.token,
-      user: sanitizeUser(out.user),
-      gym: out.gym,
+      user: sanitizeUser(result.user),
+      gym: result.gym,
     });
   } catch (e) {
     next(e);
@@ -71,19 +69,25 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const { error, value } = loginSchema.validate(req.body);
     if (error) return fail(res, error.message, 422);
-    const out = await authService.login(value);
+    const result = await authService.login(value);
     const { pendingPlanRequest } = await authService.getUserDetails(
-      out.user.id,
-      out.user.gymId,
+      result.user.id,
+      result.user.gymId,
     );
+    res.cookie("refresh_token", result?.refresh_token, {
+      httpOnly: true,
+      secure: false, // will handle using env later
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     return success(res, {
-      token: out.token,
-      user: sanitizeUser(out.user),
-      membership: out.membership,
-      gym: out.gym
+      access_token: result.access_token,
+      user: sanitizeUser(result.user),
+      membership: result.membership,
+      gym: result.gym
         ? {
-            onlinePaymentsEnabled: out.gym.onlinePaymentsEnabled,
-            geoFencingEnabled: out.gym.geoFencingEnabled,
+            onlinePaymentsEnabled: result.gym.onlinePaymentsEnabled,
+            geoFencingEnabled: result.gym.geoFencingEnabled,
           }
         : null,
       pendingPlanRequest,
@@ -93,22 +97,60 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function me(req: Request, res: Response, next: NextFunction) {
+export async function refreshToken(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const u = (req as Request & { user: AuthedUser }).user;
-    const { membership, gym, pendingPlanRequest } =
-      await authService.getUserDetails(u.id, u.gymId);
-    return success(res, {
-      user: { id: u.id, role: u.role, gymId: u.gymId },
-      membership,
-      gym: gym
-        ? {
-            onlinePaymentsEnabled: gym.onlinePaymentsEnabled,
-            geoFencingEnabled: gym.geoFencingEnabled,
-          }
-        : null,
-      pendingPlanRequest,
+    const { refresh_token } = req.cookies;
+    if (!refresh_token) {
+      throw new Error("Refresh token is missing");
+    }
+    const result = await authService.refreshTokenService(refresh_token);
+    res.cookie("refresh_token", result.refresh_token, {
+      httpOnly: true,
+      secure: false, //will handle using env later
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+    return success(res, {
+      access_token: result.access_token,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export function logout(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.clearCookie("refresh_token");
+    return success(res, {
+      message: "Logged out successfully",
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function user(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = req.user;
+    if (user) {
+      const { membership, gym, pendingPlanRequest } =
+        await authService.getUserDetails(user.id, user.gymId);
+      return success(res, {
+        user: { id: user.id, role: user.role, gymId: user.gymId },
+        membership,
+        gym: gym
+          ? {
+              onlinePaymentsEnabled: gym.onlinePaymentsEnabled,
+              geoFencingEnabled: gym.geoFencingEnabled,
+            }
+          : null,
+        pendingPlanRequest,
+      });
+    }
   } catch (e) {
     next(e);
   }

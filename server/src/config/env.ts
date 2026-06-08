@@ -11,8 +11,11 @@ export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: num(process.env.PORT, 4000),
   databaseUrl: process.env.DATABASE_URL ?? "",
-  jwtSecret: process.env.JWT_SECRET ?? "dev-secret-change-me",
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
+  accessTokenSecret: process.env.ACCESS_TOKEN_SECRET ?? "dev-secret-change-me",
+  accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN ?? "15m",
+  refreshTokenSecret:
+    process.env.REFRESH_TOKEN_SECRET ?? "dev-secret-change-me",
+  refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN ?? "7d",
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   geoRadiusMeters: num(process.env.GEO_RADIUS_METERS, 80),
   qrTokenMinutes: num(process.env.QR_TOKEN_MINUTES, 10),

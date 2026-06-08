@@ -1,4 +1,4 @@
-import { apiClient } from "../apiClient";
+import { apiClient, refreshClient } from "../apiClient";
 import { ApiResponse } from "../../types/api";
 import { API_ROUTES } from "../../constants/apiRoutes";
 import {
@@ -7,19 +7,19 @@ import {
   GymSettingsPayload,
   GymSetupResponse,
   LoginPayload,
-  LoginResponse,
+  UserLoginResponse,
   QrTokenPayload,
   QrTokenResponse,
   RegisterAdminPayload,
   RegisterMemberPayload,
   RegisterResponse,
   ScanAttendancePayload,
+  RefreshResponse,
 } from "./auth.types";
 export type { GymRecord } from "./auth.types";
 
-
 export async function login(payload: LoginPayload) {
-  const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
+  const { data } = await apiClient.post<ApiResponse<UserLoginResponse>>(
     API_ROUTES.AUTH.LOGIN,
     payload,
   );
@@ -27,8 +27,9 @@ export async function login(payload: LoginPayload) {
 }
 
 export async function fetchMemberPayload() {
-  const { data } =
-    await apiClient.get<ApiResponse<FetchMemberResponse>>(API_ROUTES.AUTH.ME);
+  const { data } = await apiClient.get<ApiResponse<FetchMemberResponse>>(
+    API_ROUTES.AUTH.ME,
+  );
   return data.data;
 }
 
@@ -49,7 +50,9 @@ export async function registerMember(body: RegisterMemberPayload) {
 }
 
 export async function fetchMyGym() {
-  const { data } = await apiClient.get<ApiResponse<FetchGymResponse>>(API_ROUTES.GYM.GET);
+  const { data } = await apiClient.get<ApiResponse<FetchGymResponse>>(
+    API_ROUTES.GYM.GET,
+  );
   return data.data.gym;
 }
 
@@ -83,4 +86,18 @@ export async function scanAttendance(body: ScanAttendancePayload) {
     body,
   );
   return data.data;
+}
+
+export async function refreshTokenService() {
+  const { data } = await refreshClient.get<ApiResponse<RefreshResponse>>(
+    API_ROUTES.AUTH.REFRESH,
+  );
+  return data;
+}
+
+export async function logoutService() {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    API_ROUTES.AUTH.LOGOUT,
+  );
+  return data;
 }
