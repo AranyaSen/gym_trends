@@ -19,6 +19,7 @@ export async function listMembers(input: {
         }
       : {}),
   };
+
   const [items, total] = await prisma.$transaction([
     prisma.user.findMany({
       where,
